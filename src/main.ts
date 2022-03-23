@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-02-12 15:53:45
- * @LastEditTime: 2022-02-21 10:00:25
+ * @LastEditTime: 2022-03-23 15:04:19
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \vitecamp\src\main.ts
@@ -12,7 +12,6 @@
 import router from '@/router/index';
 // pinia
 import store from '@/store';
-
 import App from './App.vue';
 import 'animate.css';
 import 'virtual:windi.css';

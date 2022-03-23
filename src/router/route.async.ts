@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-02-12 15:53:45
- * @LastEditTime: 2022-03-22 15:00:51
+ * @LastEditTime: 2022-03-23 15:31:14
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \vitecamp\src\router\route.async.ts
@@ -21,13 +21,13 @@ const asyncRoutes: Array<RouteRecordRaw> = [
         component: Layout,
         meta: {
             title: '首页',
-            icon: '',
+            icon: 'dashboard',
         },
         children: [{
             path: '',
             meta: {
                 title: '首页',
-                icon: '',
+                icon: 'box',
             },
             component: () => import('@/views/home/index.vue'),
 
@@ -40,7 +40,7 @@ const asyncRoutes: Array<RouteRecordRaw> = [
 
         meta: {
             title: '聚合聊天',
-            icon: '',
+            icon: 'box',
         },
         children: [
             {
@@ -56,14 +56,14 @@ const asyncRoutes: Array<RouteRecordRaw> = [
         component: Layout,
         meta: {
             title: '设置',
-            icon: '',
+            icon: 'box',
         },
         children: [
             {
                 path: 'liaotSet',
                 meta: {
                     title: '聊天设置',
-                    icon: '',
+                    icon: 'box',
                 },
                 name: "liaotSet",
                 component: () => import('@/views/setting/liaotSet/index.vue'),
@@ -72,7 +72,7 @@ const asyncRoutes: Array<RouteRecordRaw> = [
                 path: 'iPhoneSet',
                 meta: {
                     title: '手机设置',
-                    icon: '',
+                    icon: 'box',
                 },
                 name: "iPhoneSet",
                 component: () => import('@/views/setting/iPhoneSet/index.vue'),

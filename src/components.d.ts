@@ -22,6 +22,7 @@ declare module 'vue' {
     IMdiEye: typeof import('~icons/mdi/eye')['default']
     IMdiLockOutline: typeof import('~icons/mdi/lock-outline')['default']
     IPhEyeClosedBold: typeof import('~icons/ph/eye-closed-bold')['default']
+    SvgIcon: typeof import('./components/SvgIcon/index.vue')['default']
     Tabs: typeof import('./components/Tabs/index.vue')['default']
     TabsItem: typeof import('./components/Tabs/TabsItem.vue')['default']
     TheFooter: typeof import('./components/TheFooter.vue')['default']

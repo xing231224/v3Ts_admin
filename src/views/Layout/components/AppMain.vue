@@ -1,13 +1,13 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-21 14:57:39
- * @LastEditTime: 2022-03-22 17:11:11
+ * @LastEditTime: 2022-03-23 16:15:39
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3-ts_demo\src\views\Layout\components\AppMain.vue
 -->
 <template>
-    <section style="height: 100vh;">
+    <section style="height:calc(100vh - 100px);background-color: #fff;">
         <router-view :key="key"></router-view>
     </section>
 </template>

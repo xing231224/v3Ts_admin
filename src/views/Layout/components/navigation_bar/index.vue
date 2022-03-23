@@ -1,13 +1,13 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-21 14:59:41
- * @LastEditTime: 2022-03-22 17:36:13
+ * @LastEditTime: 2022-03-23 16:21:27
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3-ts_demo\src\views\Layout\components\navigation_bar\index.vue
 -->
 <template>
-    <div v-show="routeList.length > 0" :class="`tabbed  flex-sb`">
+    <div v-show="routeList.length > 0" :class="`tabbed skin-orange flex-sb`">
         <ul>
             <li
                 v-for="item in routeList"
