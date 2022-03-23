@@ -1,0 +1,26 @@
+@import "@/assets/styles/nprogress.scss";
+@import "@/assets/styles/markdown.scss";
+@import "@/assets/styles/dark.scss";
+// @import "@/assets/styles/default.css";
+// @import "@/assets/styles/normalize.css";
+
+.juz {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.flex {
+    display: flex;
+}
+.flex-sb {
+    display: flex;
+    justify-content: space-between;
+}
+.flex-sa {
+    display: flex;
+    justify-content: space-around;
+}
+.flex-col {
+    display: flex;
+    flex-direction: column;
+}
