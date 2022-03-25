@@ -1,3 +1,4 @@
+
 html, body {
   margin: 0;
   padding: 0;
@@ -135,7 +136,7 @@ h2{
   min-width: 400px;
   margin: 0 auto;
   /* margin-bottom: 68px; */
-  border-bottom: 4px solid #000;
+  border-bottom: 4px solid var(--tabs-color);
   overflow: hidden;
   transition: border 250ms ease;
 }
@@ -191,8 +192,8 @@ h2{
 .tabbed ul li:hover,
 .tabbed ul li:hover:before,
 .tabbed ul li:hover:after {
-  background-color: #F4F7F9;
-  color: #444;
+  background-color: var(--tabs-color-hover) ;
+  color: #fff;
 }
 .tabbed ul li.active {
   z-index: 3;
@@ -200,7 +201,7 @@ h2{
 .tabbed ul li.active,
 .tabbed ul li.active:before,
 .tabbed ul li.active:after {
-  background-color: #000;
+  background-color: var(--tabs-color);
   color: #fff;
 }
 

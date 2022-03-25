@@ -1,7 +1,8 @@
+/* eslint-disable no-restricted-syntax */
 /*
  * @Author: your name
  * @Date: 2022-03-23 14:59:41
- * @LastEditTime: 2022-03-23 15:00:52
+ * @LastEditTime: 2022-03-24 16:03:14
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\utils\svgBuilder.ts
@@ -23,7 +24,7 @@ function findSvgFile(dir: PathLike): string[] {
     })
     for (const dirent of dirents) {
         if (dirent.isDirectory()) {
-            svgRes.push(...findSvgFile(dir + dirent.name + '/'))
+            svgRes.push(...findSvgFile(`${dir + dirent.name}/`))
         } else {
             const svg = readFileSync(dir + dirent.name)
                 .toString()
@@ -51,6 +52,7 @@ function findSvgFile(dir: PathLike): string[] {
     return svgRes
 }
 
+// eslint-disable-next-line import/prefer-default-export
 export const svgBuilder = (path: PathLike, perfix = 'icon') => {
     if (path === '') return
     idPerfix = perfix

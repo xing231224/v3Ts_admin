@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-02-12 15:53:45
- * @LastEditTime: 2022-03-16 16:07:56
+ * @LastEditTime: 2022-03-24 15:31:15
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \vitecamp\prettier.config.js
@@ -12,7 +12,7 @@ module.exports = {
     printWidth: 120,
 
     // tab健的空格数
-    tabWidth: 2,
+    tabWidth: 4,
 
     // 是否在对象中的括号之间打印空格，{a:5}格式化为{ a: 5 }
     bracketSpacing: true,
@@ -34,5 +34,4 @@ module.exports = {
 
     // 是否使用tab格式化： 不使用
     useTabs: false,
-
 };

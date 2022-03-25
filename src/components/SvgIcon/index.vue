@@ -1,20 +1,20 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-23 14:47:12
- * @LastEditTime: 2022-03-23 16:02:47
+ * @LastEditTime: 2022-03-24 16:06:03
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\components\SvgIcon\index.vue
 -->
 <template>
-    <svg :class="svgClass" aria-hidden="true" v-on="$attrs" :style="`color:${props.color}`">
+    <svg :class="svgClass" aria-hidden="true" :style="`color:${props.color}`" v-on="$attrs">
         <use :xlink:href="iconName" />
     </svg>
 </template>
 <script lang="ts">
 export default {
-    name: 'SvgIcon'
-}
+    name: 'SvgIcon',
+};
 </script>
 <script setup lang="ts">
 /**
@@ -26,7 +26,6 @@ export default {
  * 在 template 中使用 <svg-icon name="bug"/>
  */
 
-
 /* data */
 const props = defineProps({
     name: {
@@ -35,17 +34,16 @@ const props = defineProps({
     },
     color: {
         type: String,
-        default: ''
-    }
-}) // 获取props defineProps<{ msg: string }>()
-const iconName = computed((): string => `#icon-${props.name}`)
+        default: '',
+    },
+}); // 获取props defineProps<{ msg: string }>()
+const iconName = computed((): string => `#icon-${props.name}`);
 const svgClass = computed((): string => {
     if (props.name) {
-        return `svg-icon icon-${props.name}`
-    } else {
-        return 'svg-icon'
+        return `svg-icon icon-${props.name}`;
     }
-})
+    return 'svg-icon';
+});
 </script>
 
 <style scoped>

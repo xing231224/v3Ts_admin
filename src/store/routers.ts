@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-02-18 11:11:15
- * @LastEditTime: 2022-03-22 16:39:45
+ * @LastEditTime: 2022-03-24 16:06:48
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3-ts_demo\src\store\routers.ts
@@ -10,6 +10,7 @@ import { defineStore } from 'pinia';
 import { RouteRecordRaw } from 'vue-router';
 import asyncRoutes from '@/router/route.async';
 import commonRoutes from '@/router/route.common';
+
 interface obj {
     path: string,
     name: any,

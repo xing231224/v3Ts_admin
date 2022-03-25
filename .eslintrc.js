@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-02-12 15:53:45
- * @LastEditTime: 2022-03-17 10:29:10
+ * @LastEditTime: 2022-03-24 16:00:39
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \vitecamp\.eslintrc.js
@@ -35,10 +35,11 @@ module.exports = {
     },
     plugins: ['vue', '@typescript-eslint', 'import'],
     rules: {
-        // eslint-disable-next-line prettier/prettier
+        'prettier/prettier': 'off',
         'no-console': 'off',
         'eol-last': 'off',
         'import/no-unresolved': 'off',
+        'disable-next-line': 'off',
         'import/extensions': 'off',
         'import/no-extraneous-dependencies': 'off',
         '@typescript-eslint/no-explicit-any': ['off'],
@@ -46,7 +47,12 @@ module.exports = {
         'consistent-return': ['off'],
         'no-shadow': ['off'],
         'vue/multi-word-component-names': ['off'],
-        bracketSameLine: true,
+        eqeqeq: 'off',
         camelcase: 'off',
+        'no-tabs': 'off',
+        // * 禁止直接赋值import导入的变量
+        'no-import-assign': 'error',
+        // 禁止在循环语句中出现包含不安全引用的函数声明
+        'no-loop-func': 'off',
     },
 };

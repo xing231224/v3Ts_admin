@@ -1,9 +1,12 @@
 @import "@/assets/styles/nprogress.scss";
 @import "@/assets/styles/markdown.scss";
 @import "@/assets/styles/dark.scss";
-// @import "@/assets/styles/default.css";
+@import "./variables.scss";
 // @import "@/assets/styles/normalize.css";
-
+:root {
+    --tabs-color: #f39c12;
+    --tabs-color-hover: #ffc238;
+}
 .juz {
     display: flex;
     flex-direction: column;

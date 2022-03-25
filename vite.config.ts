@@ -1,14 +1,13 @@
 /*
  * @Author: your name
  * @Date: 2022-02-12 15:53:45
- * @LastEditTime: 2022-03-23 15:11:00
+ * @LastEditTime: 2022-03-24 18:05:57
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \vitecamp\vite.config.ts
  */
 import { defineConfig, loadEnv } from 'vite';
 import { resolve } from 'path';
-import vue from '@vitejs/plugin-vue'
 import presets from './presets/presets';
 import { svgBuilder } from './src/utils/svgBuilder';
 
