@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-25 10:42:04
- * @LastEditTime: 2022-03-25 17:08:43
+ * @LastEditTime: 2022-03-29 11:28:10
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\mirandaIM\verbalTrick\index.vue
@@ -20,8 +20,8 @@
                 <i-gis-search-attribtues class="wh_16" />
             </div>
         </div>
-        <div class="juz">
-            <i-teenyicons-double-caret-right-outline class="wh_16" />
+        <div class="juz" @click="closeVerbal()">
+            <i-teenyicons-double-caret-left-outline class="wh_16" />
         </div>
     </div>
     <div style="--el-color-primary:#F39C12">
@@ -34,7 +34,6 @@
                         placeholder="Please Input"
                         :prefix-icon="Search"
                     />
-                    <el-tree :data="data" :props="defaultProps" @node-click="handleNodeClick" />
                 </div>
             </el-tab-pane>
             <el-tab-pane label="我的话术" name="second">Config</el-tab-pane>
@@ -44,80 +43,16 @@
 
 <script setup lang='ts'>
 import { Search } from '@element-plus/icons-vue'
+import Store from "@/store/message"
 
+const myMessage = Store()
 const input2 = ref('')
 const activeName = ref("first")
-interface Tree {
-    label: string
-    children?: Tree[]
+const closeVerbal = () => {
+    myMessage.setHiddenAside(true)
 }
 
-const handleNodeClick = (data: Tree) => {
-    console.log(data)
-}
 
-const data: Tree[] = [
-    {
-        label: 'Level one 1',
-        children: [
-            {
-                label: 'Level two 1-1',
-                children: [
-                    {
-                        label: 'Level three 1-1-1',
-                    },
-                ],
-            },
-        ],
-    },
-    {
-        label: 'Level one 2',
-        children: [
-            {
-                label: 'Level two 2-1',
-                children: [
-                    {
-                        label: 'Level three 2-1-1',
-                    },
-                ],
-            },
-            {
-                label: 'Level two 2-2',
-                children: [
-                    {
-                        label: 'Level three 2-2-1',
-                    },
-                ],
-            },
-        ],
-    },
-    {
-        label: 'Level one 3',
-        children: [
-            {
-                label: 'Level two 3-1',
-                children: [
-                    {
-                        label: 'Level three 3-1-1',
-                    },
-                ],
-            },
-            {
-                label: 'Level two 3-2',
-                children: [
-                    {
-                        label: 'Level three 3-2-1',
-                    },
-                ],
-            },
-        ],
-    },
-]
-
-const defaultProps = {
-    children: 'children',
-    label: 'label',
-}
 </script>
 
 <style lang='scss' scoped>

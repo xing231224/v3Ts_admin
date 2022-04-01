@@ -1,15 +1,14 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-17 11:22:00
- * @LastEditTime: 2022-03-21 14:35:43
+ * @LastEditTime: 2022-03-30 11:30:09
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3-ts_demo\src\components\Tabs\TabsItem.vue
 -->
 
 <template>
-    <!-- vue3页面 -->
-    <div class="pane" v-show="name == tabActive">
+    <div v-show="name == tabActive" class="pane">
         <slot></slot>
     </div>
 </template>

@@ -2,7 +2,8 @@
 @import "@/assets/styles/markdown.scss";
 @import "@/assets/styles/dark.scss";
 @import "./variables.scss";
-// @import "@/assets/styles/normalize.css";
+@import "@/assets/styles/normalize.css";
+@import "./emjoy.css";
 :root {
     --tabs-color: #f39c12;
     --tabs-color-hover: #ffc238;
@@ -26,4 +27,11 @@
 .flex-col {
     display: flex;
     flex-direction: column;
+}
+
+* {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
 }

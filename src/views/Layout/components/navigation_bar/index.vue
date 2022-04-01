@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-21 14:59:41
- * @LastEditTime: 2022-03-25 15:23:34
+ * @LastEditTime: 2022-03-30 14:39:39
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3-ts_demo\src\views\Layout\components\navigation_bar\index.vue
@@ -18,21 +18,51 @@
                         : 'animate__animated animate__backInDown animate__faster'
                 "
                 @click="goPath(item.path)"
-            >{{ item.title }}</li>
+            >
+                <span>{{ item.title }}</span>
+                <span
+                    v-if="routeList.length != 1"
+                    class="close"
+                    @click.stop="delNavRouter(item.path)"
+                >
+                    <i-ion-ios-close-circle-outline />
+                </span>
+            </li>
         </ul>
-        <div class="juz">
-            <!-- <slot name="headerRight"></slot> -->
+        <div class="flex">
+            <el-popover placement="bottom-start" :width="200" trigger="hover">
+                <template #reference>
+                    <div class="juz tx">
+                        <el-avatar :size="30" :src="tx" />
+                    </div>
+                </template>
+                <template #default>测试内容</template>
+            </el-popover>
+            <span class="juz" style="font-size:14px">喜羊羊</span>
         </div>
     </div>
 </template>
 <script setup lang="ts">
 import Store from '@/store/routers';
+import tx from "@/assets/age1f-rzq97.png"
 
 const Route = useRoute();
 const Router = useRouter();
-const routeList = Store().getNavRouter;
+const routeList = ref()
 const activePath = ref(Route.path);
 
+
+const delNavRouter = (path: string) => {
+    Store().delNavRouter(path)
+    const navList = Store().getNavRouter
+    if (navList.length > 0) {
+        Router.push(navList[navList.length - 1].path)
+    }
+}
+
+watchEffect(() => {
+    routeList.value = computed(() => Store().getNavRouter).value
+})
 watch(Route, (n) => {
     activePath.value = n.path;
 });
@@ -46,5 +76,54 @@ const goPath = (path: string) => {
 @import "@/assets/styles/tabs.css";
 .tabbed {
     border: 0;
+    ul {
+        padding-top: 10px;
+        li {
+            position: relative;
+
+            .close {
+                display: none;
+                position: absolute;
+                right: -24px;
+                top: -12px;
+                svg {
+                    width: 25px;
+                    height: 25px;
+                    z-index: 99999;
+                }
+            }
+            &:hover {
+                .close {
+                    display: block;
+                }
+            }
+        }
+    }
+    .tx {
+        margin-right: 5px;
+        cursor: pointer;
+        animation: rotate 3s linear infinite;
+        &:hover {
+            animation: normal;
+        }
+    }
+}
+
+@keyframes rotate {
+    0% {
+        -webkit-transform: rotate(0deg);
+    }
+    25% {
+        -webkit-transform: rotate(90deg);
+    }
+    50% {
+        -webkit-transform: rotate(180deg);
+    }
+    75% {
+        -webkit-transform: rotate(270deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+    }
 }
 </style>

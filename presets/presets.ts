@@ -25,82 +25,82 @@ import { resolve } from 'path';
 const defaultClasses = 'prose prose-sm m-auto text-left';
 
 export default (env: ConfigEnv) => {
-  return [
-    vue({
-      include: [/\.vue$/, /\.md$/],
-    }),
-    vueJsx(),
-    svgLoader(),
-    legacy({
-      targets: ['defaults', 'not IE 11'],
-    }),
-    AutoImport({
-      dts: './src/auto-imports.d.ts',
-      imports: ['vue', 'pinia', 'vue-router', 'vue-i18n', , '@vueuse/core'],
-      // Generate corresponding .eslintrc-auto-import.json file.
-      // eslint globals Docs - https://eslint.org/docs/user-guide/configuring/language-options#specifying-globals
-      eslintrc: {
-        enabled: true, // Default `false`
-        filepath: './.eslintrc-auto-import.json', // Default `./.eslintrc-auto-import.json`
-        globalsPropValue: true, // Default `true`, (true | false | 'readonly' | 'readable' | 'writable' | 'writeable')
-      },
-      resolvers: [ElementPlusResolver()],
-    }),
-    Components({
-      dts: './src/components.d.ts',
-      extensions: ['vue', 'md'],
-      include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
-      // imports 指定组件所在位置，默认为 src/components; 有需要也可以加上 view 目录
-      dirs: ['src/components/'],
-      resolvers: [ElementPlusResolver(), IconsResolver(), VueUseComponentsResolver()],
-    }),
-    // styleImport({
-    //   resolves: [ElementPlusResolve()],
-    // }),
-    Icons({
-      compiler: 'vue3',
-      autoInstall: true,
-    }),
-    ViteFonts({
-      google: {
-        families: ['Open Sans', 'Montserrat', 'Fira Sans'],
-      },
-    }),
-    VueI18n({
-      include: [resolve(__dirname, '../locales/**')],
-    }),
-    WindiCSS({
-      safelist: defaultClasses,
-    }),
-    Markdown({
-      wrapperClasses: defaultClasses,
-      headEnabled: false,
-      markdownItSetup(md) {
-        // https://prismjs.com/
-        md.use(Prism);
-        // 为 md 中的所有链接设置为 新页面跳转
-        md.use(LinkAttributes, {
-          matcher: (link: string) => /^https?:\/\//.test(link),
-          attrs: {
-            target: '_blank',
-            rel: 'noopener',
-          },
-        });
-      },
-    }),
-    PkgConfig(),
-    env.mode === 'production'
-      ? null
-      : checker({
-        enableBuild: false,
-        typescript: true,
-        vueTsc: true,
-        eslint: {
-          lintCommand: 'eslint "./src/**/*.{ts,tsx,vue}"',
-          dev: {
-            logLevel: ['error'],
-          },
-        },
-      }),
-  ];
+    return [
+        vue({
+            include: [/\.vue$/, /\.md$/],
+        }),
+        vueJsx(),
+        svgLoader(),
+        legacy({
+            targets: ['defaults', 'not IE 11'],
+        }),
+        AutoImport({
+            dts: './src/auto-imports.d.ts',
+            imports: ['vue', 'pinia', 'vue-router', 'vue-i18n', , '@vueuse/core'],
+            // Generate corresponding .eslintrc-auto-import.json file.
+            // eslint globals Docs - https://eslint.org/docs/user-guide/configuring/language-options#specifying-globals
+            eslintrc: {
+                enabled: true, // Default `false`
+                filepath: './.eslintrc-auto-import.json', // Default `./.eslintrc-auto-import.json`
+                globalsPropValue: true, // Default `true`, (true | false | 'readonly' | 'readable' | 'writable' | 'writeable')
+            },
+            resolvers: [ElementPlusResolver()],
+        }),
+        Components({
+            dts: './src/components.d.ts',
+            extensions: ['vue', 'md'],
+            include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
+            // imports 指定组件所在位置，默认为 src/components; 有需要也可以加上 view 目录
+            dirs: ['src/components/'],
+            resolvers: [ElementPlusResolver(), IconsResolver(), VueUseComponentsResolver()],
+        }),
+        // styleImport({
+        //   resolves: [ElementPlusResolve()],
+        // }),
+        Icons({
+            compiler: 'vue3',
+            autoInstall: true,
+        }),
+        ViteFonts({
+            google: {
+                families: ['Open Sans', 'Montserrat', 'Fira Sans'],
+            },
+        }),
+        VueI18n({
+            include: [resolve(__dirname, '../locales/**')],
+        }),
+        WindiCSS({
+            safelist: defaultClasses,
+        }),
+        Markdown({
+            wrapperClasses: defaultClasses,
+            headEnabled: false,
+            markdownItSetup(md) {
+                // https://prismjs.com/
+                md.use(Prism);
+                // 为 md 中的所有链接设置为 新页面跳转
+                md.use(LinkAttributes, {
+                    matcher: (link: string) => /^https?:\/\//.test(link),
+                    attrs: {
+                        target: '_blank',
+                        rel: 'noopener',
+                    },
+                });
+            },
+        }),
+        PkgConfig(),
+        env.mode === 'production'
+            ? null
+            : checker({
+                enableBuild: false,
+                typescript: true,
+                vueTsc: true,
+                eslint: {
+                    lintCommand: 'eslint "./src/**/*.{ts,tsx,vue}"',
+                    dev: {
+                        logLevel: ['error'],
+                    },
+                },
+            }),
+    ];
 };

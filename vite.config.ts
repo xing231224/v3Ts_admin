@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-02-12 15:53:45
- * @LastEditTime: 2022-03-24 18:05:57
+ * @LastEditTime: 2022-03-29 10:22:50
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \vitecamp\vite.config.ts
@@ -11,7 +11,7 @@ import { resolve } from 'path';
 import presets from './presets/presets';
 import { svgBuilder } from './src/utils/svgBuilder';
 
-const proxyDomain = 'http://127.0.0.1:5000/';
+// const proxyDomain = 'http://127.0.0.1:8080/';
 
 // https://vitejs.dev/config/
 export default defineConfig((env) => {
@@ -21,10 +21,7 @@ export default defineConfig((env) => {
     return {
         base: viteEnv.VITE_BASE,
         // 插件
-        plugins: [
-            presets(env),
-            svgBuilder('./src/assets/svg/')
-        ],
+        plugins: [svgBuilder('./src/assets/svg/'), presets(env)],
         // 别名设置
         resolve: {
             alias: {
@@ -37,15 +34,15 @@ export default defineConfig((env) => {
             port: 8080, // 端口号
             open: true, // 自动打开浏览器
             cors: true, // 跨域设置允许
-            strictPort: true, // 如果端口已占用直接退出
+            strictPort: false, // 如果端口已占用直接退出
             // 接口代理
-            proxy: {
-                '/api': {
-                    target: proxyDomain,
-                    changeOrigin: true, // 允许跨域
-                    rewrite: (path) => path.replace('/api/', '/'),
-                },
-            },
+            // proxy: {
+            //     '/api': {
+            //         target: proxyDomain,
+            //         changeOrigin: true, // 允许跨域
+            //         rewrite: (path) => path.replace('/api/', '/'),
+            //     },
+            // },
         },
         build: {
             brotliSize: false,

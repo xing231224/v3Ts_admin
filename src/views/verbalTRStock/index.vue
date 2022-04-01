@@ -1,20 +1,16 @@
 <!--
  * @Author: your name
- * @Date: 2022-02-12 15:53:45
- * @LastEditTime: 2022-03-30 17:16:32
+ * @Date: 2022-03-30 14:17:46
+ * @LastEditTime: 2022-03-30 14:17:48
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- * @FilePath: \vitecamp\src\views\home\index.vue
+ * @FilePath: \v3ts_admin\src\views\verbalTRStock\index.vue
 -->
 <template>
-    <div></div>
+    <div>话术库</div>
 </template>
 
 <script setup lang='ts'>
-// const { proxy: { parsingEmoji } } = getCurrentInstance() as any
-
-// const str = '明天约吗？[奸笑]'
-
 </script>
 
 <style lang='scss' scoped>

@@ -1,0 +1,7 @@
+syntax = "proto3";
+/*聊天消息*/
+message MessageRequest{
+    string status = 1;          //状态
+    string key=2;  
+    string data = 3;          //数据
+}
