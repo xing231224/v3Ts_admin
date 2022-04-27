@@ -1,27 +1,39 @@
-/*
- * @Author: your name
- * @Date: 2022-03-26 09:44:16
- * @LastEditTime: 2022-04-01 10:27:51
- * @LastEditors: Please set LastEditors
- * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- * @FilePath: \v3ts_admin\src\utils\webSocket.ts
- */
-/*
- * @Author: your name
- * @Date: 2021-12-13 11:20:08
- * @LastEditTime: 2021-12-22 09:14:44
- * @LastEditors: Please set LastEditors
- * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- * @FilePath: \v3ChromeCtx\src\utils\webSocket.js
- */
+/* eslint-disable class-methods-use-this */
+/* eslint-disable no-bitwise */
 
 import protobuf from "protobufjs"
 import protoRoot from '@/proto/proto'
+import { randomKey } from "@/utils/mineUtils"
+import userStore from "@/store/user"
 
+import { getUserId } from "@/api/modules/login"
 
+interface msgType {
+    key: string,
+    status: string,
+    data: any
+}
 
+function initData(db: Function) {
+    const obj = {
+        key: randomKey(),
+        status: '0',
+        clientId: '111110',
+        weChatId: '2544848',
+        data: {}
+    }
+    getUserId().then(res => {
+        userStore().setUserId(res.data.data)
+        obj.data = { userId: `${res.data.data}`, msg: "喜羊羊@#￥%&*（（））" }
+        // eslint-disable-next-line no-unused-expressions
+        db && db(obj)
+    })
+
+}
 class WebSocketClass {
     lockReconnect: boolean
+
+    lockRetry: boolean
 
     localUrl: string
 
@@ -37,6 +49,7 @@ class WebSocketClass {
 
     constructor(name: string) {
         this.lockReconnect = false;
+        this.lockRetry = false;
         this.localUrl = "ws://";
         this.wsUrl = "";
         this.globalCallback = null;
@@ -45,7 +58,6 @@ class WebSocketClass {
         this.ws = null;
         this.createWebSocket(name);
     }
-
 
     createWebSocket(url: string) {
         // eslint-disable-next-line no-plusplus
@@ -62,10 +74,12 @@ class WebSocketClass {
     // 初始化
     initEventHandle() {
         // 连接成功建立后响应
-        console.log(this.ws);
         this.ws.onopen = () => {
             console.log("连接成功");
             // this.ws.send(`我是客户端,第${this.count}次连接`);
+            initData((obj: any) => {
+                this.webSocketSendMsg(obj, "MessageRequest")
+            })
         };
         // 连接关闭后响应
         this.ws.onclose = () => {
@@ -84,6 +98,7 @@ class WebSocketClass {
         };
     }
 
+    // 链接心跳
     reconnect(url: string) {
         if (this.lockReconnect) return;
         this.lockReconnect = true; // 没连接上会一直重连，设置延迟避免请求过多
@@ -93,12 +108,33 @@ class WebSocketClass {
         }, 10000);
     }
 
+    // 消息重发
+    retry(msg: msgType) {
+        // eslint-disable-next-line no-useless-return
+        if (this.lockRetry) return;
+        this.lockRetry = true;
+        setTimeout(() => {
+            this.webSocketSendMsg(msg);
+            this.lockRetry = false;
+        }, 1000)
+    }
+
     // 发送消息
-    webSocketSendMsg(msg: string, protoClass = '') {
+    webSocketSendMsg(msg: msgType, protoClass = 'MessageRequest') {
         // 正常发送数据
         if (!protoClass) return this.ws.send(msg);
-        // 转化二进制发送消息
-        this.ws.send(this.transformRequest(protoClass)(msg))
+        // eslint-disable-next-line no-param-reassign
+        // msg.data = typeof msg.data == 'string' ? msg.data : JSON.stringify(msg.data) // data转JSON
+        // eslint-disable-next-line no-param-reassign
+        msg.data = typeof msg.data == 'string' ? msg.data : this.byteArray(JSON.stringify(msg.data)) // 字符串转byte
+        this.ws.send(this.transformRequest(protoClass)(msg))  // 转化二进制发送消息
+        this.lockRetry = false
+        // if (msg.status == '0') {
+        //     // 一秒后 消息重发
+        //     setTimeout(() => {
+        //         this.retry(msg)
+        //     }, 1000)
+        // }
     }
 
     // 接收消息
@@ -110,8 +146,24 @@ class WebSocketClass {
                 // eslint-disable-next-line no-param-reassign
                 callback = this.globalCallback
             }
-            // eslint-disable-next-line no-unused-expressions
-            callback && callback(ev);
+            this.lockRetry = true
+            // 返回结果是Blob 解码
+            if (this.isBlob(ev.data)) {
+                ev.data.arrayBuffer().then((res: number | number[] | null | undefined) => {
+                    const obj = this.transformResponse("MessageRequest")(res)
+                    console.log('接收的消息====》', obj);
+                    if (obj.data.length > 0) {
+                        obj.data = JSON.parse(this.byteToString(obj.data)) // byte数组转字符串
+                    }
+                    // eslint-disable-next-line no-unused-expressions
+                    callback && callback(obj);
+                })
+            } else {
+                // 正常返回
+                // eslint-disable-next-line no-unused-expressions
+                callback && callback(ev);
+            }
+
         };
     }
 
@@ -120,13 +172,87 @@ class WebSocketClass {
         return Object.prototype.toString.call(obj) === '[object ArrayBuffer]'
     }
 
+    // eslint-disable-next-line class-methods-use-this
+    isBlob(obj: any) {
+        return Object.prototype.toString.call(obj) === '[object Blob]'
+    }
+
+    // 将字符串转换为byte数组
+    // eslint-disable-next-line class-methods-use-this
+    byteArray(message: string) {
+        const bytesArr = this.stringToByte(message);
+        const bytes = new Uint8Array(bytesArr.length);
+        // eslint-disable-next-line no-plusplus
+        for (let i = 0; i < bytes.length; i++) {
+            bytes[i] = bytesArr[i];
+        }
+        return bytes
+    }
+
+    // 将字符串转为 Array byte数组
+    // eslint-disable-next-line class-methods-use-this
+    stringToByte(str: string) {
+        const bytes = [];
+        let len; let c;
+
+        // eslint-disable-next-line prefer-const
+        len = str.length;
+        // eslint-disable-next-line no-plusplus
+        for (let i = 0; i < len; i++) {
+            c = str.charCodeAt(i);
+            if (c >= 0x010000 && c <= 0x10FFFF) {
+                bytes.push(((c >> 18) & 0x07) | 0xF0);
+                bytes.push(((c >> 12) & 0x3F) | 0x80);
+                bytes.push(((c >> 6) & 0x3F) | 0x80);
+                bytes.push((c & 0x3F) | 0x80);
+            } else if (c >= 0x000800 && c <= 0x00FFFF) {
+                bytes.push(((c >> 12) & 0x0F) | 0xE0);
+                bytes.push(((c >> 6) & 0x3F) | 0x80);
+                bytes.push((c & 0x3F) | 0x80);
+            } else if (c >= 0x000080 && c <= 0x0007FF) {
+                bytes.push(((c >> 6) & 0x1F) | 0xC0);
+                bytes.push((c & 0x3F) | 0x80);
+            } else {
+                bytes.push(c & 0xFF);
+            }
+        }
+        return bytes;
+    }
+
+    // byte数组转字符串
+    byteToString(arr: any[]) {
+        if (typeof arr === 'string') {
+            return arr;
+        }
+        let str = '';
+        // eslint-disable-next-line no-underscore-dangle
+        const _arr = arr;
+        // eslint-disable-next-line no-plusplus
+        for (let i = 0; i < _arr.length; i++) {
+            const one = _arr[i].toString(2);
+            const v = one.match(/^1+?(?=0)/);
+            if (v && one.length == 8) {
+                const bytesLength = v[0].length;
+                let store = _arr[i].toString(2).slice(7 - bytesLength);
+                // eslint-disable-next-line no-plusplus
+                for (let st = 1; st < bytesLength; st++) {
+                    store += _arr[st + i].toString(2).slice(2);
+                }
+                str += String.fromCharCode(parseInt(store, 2));
+                i += bytesLength - 1;
+            } else {
+                str += String.fromCharCode(_arr[i]);
+            }
+        }
+        return str;
+    }
+
     // 发送消息转换二进制
     // eslint-disable-next-line class-methods-use-this
     transformRequest(responseType: string) {
         const initProto = protoRoot.lookup(responseType)
         return (data: any) => {
-            const aa = initProto.encode(initProto.create(data)).finish()
-            return aa;
+            return initProto.encode(initProto.create(data)).finish()
         }
     }
 
@@ -159,5 +285,7 @@ class WebSocketClass {
         }
     }
 }
+
+
 
 export default WebSocketClass;

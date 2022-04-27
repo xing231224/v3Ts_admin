@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-03-28 17:54:26
- * @LastEditTime: 2022-03-29 11:22:02
+ * @LastEditTime: 2022-04-26 11:22:39
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\store\message.ts
@@ -13,7 +13,20 @@ interface state {
     context: userType | {},
     isContext: boolean,
     isHiddenAside: boolean,
-    activeId: number | string
+    activeId: number | string,
+    accounts: any[],
+    isLogin: boolean
+}
+interface WebMsgVo {
+    id: string; // 用户id
+    qrCode: string; // 二维码
+    accountTo: string; // 自己微企账号
+    accountGo: string; // 对方微企账号
+    time: string; // 发送时间
+    path: string; // 附件地址
+    sendStatus: string; // 发送状态
+    content: string; // 聊天内容
+    dialogueId: string; // 对话唯一标识
 }
 
 const message = defineStore({
@@ -25,6 +38,8 @@ const message = defineStore({
             isContext: false, // 隐藏消息列表
             isHiddenAside: false, // 隐藏侧边栏话术
             activeId: '',  // 当前激活好友的id
+            accounts: [], // 子账号  length>0显示主聊天界面
+            isLogin: true, // 打开二维码弹框
         };
     },
     // 等同于vuex的getter
@@ -41,6 +56,7 @@ const message = defineStore({
             this.context = item;
             this.activeId = item.id
         },
+        // 设置侧边栏话术的显示 隐藏
         setHiddenAside(is: boolean) {
             this.isHiddenAside = is
         }

@@ -1,13 +1,13 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-21 14:09:09
- * @LastEditTime: 2022-03-30 17:10:02
+ * @LastEditTime: 2022-04-26 16:44:06
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3-ts_demo\src\views\mirandaIM\index.vue
 -->
 <template>
-    <el-container>
+    <el-container v-if="myMessage.accounts.length > 0">
         <el-header height="auto" style="font-size: 14px;border-bottom: 1px solid #e5e7eb;">
             <div class="flex" style="padding: 5px 0;">
                 <span class="juz">在线状态</span>
@@ -59,53 +59,75 @@
             </el-aside>
         </el-container>
     </el-container>
+    <WeCahtLogin v-if="myMessage.isLogin" v-model="myMessage.isLogin" />
+    <el-dialog v-model="dialogVisible" title="Tips" width="30%" @close="handleClose">
+        <img :src="imgSrc" />
+        <template #footer>
+            <span class="dialog-footer">
+                <el-button @click="dialogVisible = false">Cancel</el-button>
+                <el-button type="primary" @click="dialogVisible = false">Confirm</el-button>
+            </span>
+        </template>
+    </el-dialog>
 </template>
 
 <script setup lang='ts'>
 import FriendList from "./friendList/index.vue"
 import Content from './content/index.vue'
 import VerbalTrickVue from './verbalTR/index.vue'
-import { userList } from "@/api/modules/mrrandaIM"
+import WeCahtLogin from "./weChatLogin/index.vue"
 import Store from "@/store/message"
 
 
-const myMessage = Store()
-const value = ref(false)
-const dataList = ref([])
-const isContentMess = ref(false)
-const isHidden = ref(false)
 
-provide("dataList", dataList)
+
+const myMessage = Store()
+const state = reactive({
+    value: false,
+    dialogVisible: false,
+    isHidden: false,
+    dataList: [],
+    isContentMess: false
+})
+const imgSrc = ref('')
+const handleClose = () => {
+    console.log(1111);
+}
+const openDialog = (bool: boolean) => {
+    state.dialogVisible = bool
+}
+// 传递参数给子孙组件
+console.log(state.dataList);
+provide("dataList", state.dataList)
+provide("openDialog", openDialog)
 
 watchEffect(() => {
-    isContentMess.value = computed(() => myMessage.$state.isContext).value
-    isHidden.value = computed(() => myMessage.getHiddenAside).value
+    state.isContentMess = computed(() => myMessage.$state.isContext).value
+    state.isHidden = computed(() => myMessage.getHiddenAside).value
 })
 
-userList().then(res => {
-    console.log(res);
 
-    dataList.value = res.data.data
-})
-
+const { value, dialogVisible, isHidden, isContentMess } = toRefs(state)
 
 </script>
 
 <style lang='scss' scoped>
 .main {
     padding: 0;
-
     border: 1px solid #e5e7eb;
     border-top: 0;
+
     .svg_message {
         width: 100%;
         height: 100%;
+
         svg {
             width: 60%;
             height: 60%;
             margin: auto;
         }
     }
+
     .aside {
         transition: width 0.5s;
     }

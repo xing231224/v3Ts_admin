@@ -2,6 +2,10 @@
 import * as $protobuf from "protobufjs/light";
 
 const $root = ($protobuf.roots["default"] || ($protobuf.roots["default"] = new $protobuf.Root()))
+.setOptions({
+  java_package: "com.jw.telbot.nettyServer",
+  java_outer_classname: "ProtoMsg"
+})
 .addJSON({
   MessageRequest: {
     fields: {
@@ -14,8 +18,24 @@ const $root = ($protobuf.roots["default"] || ($protobuf.roots["default"] = new $
         id: 2
       },
       data: {
-        type: "string",
+        type: "bytes",
         id: 3
+      },
+      clientId: {
+        type: "string",
+        id: 4
+      },
+      weChatId: {
+        type: "string",
+        id: 5
+      },
+      state: {
+        type: "int32",
+        id: 6
+      },
+      msg: {
+        type: "string",
+        id: 7
       }
     }
   }

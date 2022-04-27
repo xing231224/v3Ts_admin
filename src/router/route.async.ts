@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-02-12 15:53:45
- * @LastEditTime: 2022-03-31 09:57:41
+ * @LastEditTime: 2022-04-12 10:49:51
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \vitecamp\src\router\route.async.ts
@@ -14,7 +14,7 @@ const Layout = () => import("@/views/Layout/index.vue");
 const asyncRoutes: Array<RouteRecordRaw> = [
     {
         path: '/',
-        redirect: '/login',
+        redirect: '/home',
     },
     {
         path: '/home',
@@ -31,19 +31,43 @@ const asyncRoutes: Array<RouteRecordRaw> = [
         }]
     },
     {
-        path: '/verbalTRStock',
-        name: 'verbalTRStock',
+        path: '/operationMan',
+        name: 'operationMan',
         component: Layout,
+        redirect: "/operationMan/operationWords",
         meta: {
-            title: '话术库',
+            title: '话术管理',
             keepAlive: true,
             icon: 'dashboard',
         },
         children: [
             {
-                path: '',
-                component: () => import('@/views/verbalTRStock/index.vue'),
+                path: 'operationWords',
+                meta: {
+                    title: '话术设置',
+                    icon: 'swagger',
+                },
+                name: "operationWords",
+                component: () => import('@/views/operationMan/operationWords/index.vue'),
             },
+            {
+                path: 'knowledgeBase',
+                meta: {
+                    title: '知识库',
+                    icon: 'swagger',
+                },
+                name: "knowledgeBase",
+                component: () => import('@/views/operationMan/knowledgeBase/index.vue'),
+            },
+            // {
+            //     path: 'verbalTrickPush',
+            //     meta: {
+            //         title: '话术推送',
+            //         icon: 'swagger',
+            //     },
+            //     name: "verbalTrickPush",
+            //     component: () => import('@/views/operationMan/verbalTrickPush/index.vue'),
+            // }
         ]
 
     },

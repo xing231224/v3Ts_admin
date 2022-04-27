@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-25 10:39:43
- * @LastEditTime: 2022-03-31 10:48:47
+ * @LastEditTime: 2022-04-15 15:43:46
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\mirandaIM\content\index.vue
@@ -9,18 +9,9 @@
 <template>
     <!-- vue3页面 -->
     <el-container class="content">
-        <el-header
-            height="auto"
-            class="flex-sb"
-            style="padding: 0; border-bottom: 1px solid #e5e7eb;"
-        >
+        <el-header height="auto" class="flex-sb" style="padding: 0; border-bottom: 1px solid #e5e7eb;">
             <p>{{ contentMess.nickName }}</p>
-            <div
-                v-if="isHidden"
-                class="juz"
-                style="margin-right: 10px;cursor: pointer;"
-                @click="openVerbal()"
-            >
+            <div v-if="isHidden" class="juz" style="margin-right: 10px;cursor: pointer;" @click="openVerbal()">
                 <i-teenyicons-double-caret-right-outline class="wh_16" />
             </div>
         </el-header>
@@ -28,12 +19,7 @@
             <ul class="message">
                 <li class="opposite">
                     <div class="flex">
-                        <el-avatar
-                            shape="square"
-                            :size="20"
-                            style="display: block;"
-                            :src="contentMess.avatar"
-                        />
+                        <el-avatar shape="square" :size="20" style="display: block;" :src="contentMess.avatar" />
                         <span class="juz" style="margin: 0 10px;">{{ contentMess.nickName }}</span>
                         <span class="juz">{{ contentMess.newTime }}</span>
                     </div>
@@ -86,24 +72,30 @@ watchEffect(() => {
     width: 100%;
     height: 100%;
     border-top: 0;
+
     .wh_16 {
         width: 16px;
         height: 16px;
     }
+
     p {
         height: 45px;
         padding: 10px 20px;
     }
+
     .message {
         height: 100%;
         font-size: 14px;
         overflow: hidden;
+
         li {
             margin: 10px 0;
         }
+
         .juz {
             font-size: 12px;
         }
+
         .opposite_content {
             display: inline-block;
             margin-left: 30px;
@@ -111,18 +103,23 @@ watchEffect(() => {
             background-color: #e9e9e9;
             border-radius: 4px;
         }
+
         .right {
             float: right;
         }
+
         .left {
             float: left;
         }
+
         .me {
             float: right;
+
             .avatar_info {
                 display: flex;
                 flex-direction: row-reverse;
             }
+
             .me_content {
                 display: inline-block;
                 margin-right: 30px;
@@ -132,6 +129,7 @@ watchEffect(() => {
             }
         }
     }
+
     .footer {
         position: relative;
         padding: 0;

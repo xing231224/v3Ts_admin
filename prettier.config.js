@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-02-12 15:53:45
- * @LastEditTime: 2022-03-24 15:31:15
+ * @LastEditTime: 2022-04-13 10:16:30
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \vitecamp\prettier.config.js
@@ -34,4 +34,6 @@ module.exports = {
 
     // 是否使用tab格式化： 不使用
     useTabs: false,
+
+    wrapAttributes: false,
 };

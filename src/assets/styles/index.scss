@@ -4,6 +4,8 @@
 @import "./variables.scss";
 @import "@/assets/styles/normalize.css";
 @import "./emjoy.css";
+@import "element-plus/dist/index.css";
+
 :root {
     --tabs-color: #f39c12;
     --tabs-color-hover: #ffc238;
@@ -11,6 +13,7 @@
 .juz {
     display: flex;
     flex-direction: column;
+
     justify-content: center;
 }
 .flex {
@@ -34,4 +37,7 @@
     -moz-user-select: none;
     user-select: none;
     -webkit-user-drag: none;
+}
+.el-icon {
+    position: inherit;
 }

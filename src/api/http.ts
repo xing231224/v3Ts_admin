@@ -1,8 +1,9 @@
+/* eslint-disable no-param-reassign */
 /*
  * @Author: your name
  * @Date: 2022-03-23 09:44:33
- * @LastEditTime: 2022-03-28 14:32:56
- * @LastEditors: your name
+ * @LastEditTime: 2022-04-26 10:08:15
+ * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\api\http.ts
  */
@@ -10,9 +11,10 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } f
 import { ElMessage } from 'element-plus';
 import showCodeMessage from '@/api/code';
 import { formatJsonToUrlParams, instanceObject } from '@/utils/format';
+import { getToken, removeToken } from '@/utils/cookies';
 
 const BASE_PREFIX = import.meta.env.VITE_API_BASEURL;
-console.log(BASE_PREFIX);
+// console.log(BASE_PREFIX);
 
 
 // 创建实例
@@ -32,6 +34,15 @@ axiosInstance.interceptors.request.use(
     (config: AxiosRequestConfig) => {
         // TODO 在这里可以加上想要在请求发送前处理的逻辑
         // TODO 比如 loading 等
+        if (getToken()) {
+            config.headers = {
+                ...config.headers,
+                Authorization: `Bearer ${getToken()}`// 让每个请求携带token--['X-Token']为自定义key 请根据实际情况自行修改
+            }
+            if (config.url?.indexOf("/export") != -1) {
+                config.responseType = "blob";
+            }
+        }
         return config;
     },
     (error: AxiosError) => {
@@ -51,16 +62,23 @@ axiosInstance.interceptors.response.use(
     (error: AxiosError) => {
         const { response } = error;
         if (response) {
+
+            if (response.status === 401) {
+                removeToken()
+                useRouter().push('/login')
+            }
+
             ElMessage.error(showCodeMessage(response.status));
             return Promise.reject(response.data);
+
         }
         ElMessage.warning('网络连接异常,请稍后再试!');
         return Promise.reject(error);
     },
 );
 const service = {
-    get: (url: string, data?: object) => axiosInstance.get(url, { params: data }),
-    post: (url: string, data?: object) => axiosInstance.post(url, data),
+    get: (url: string, data?: object, headers = {}) => axiosInstance.get(url, { params: data, headers }),
+    post: (url: string, data?: object, config?: object) => axiosInstance.post(url, data, config),
     put: (url: string, data?: object) => axiosInstance.put(url, data),
     delete: (url: string, data?: object) => axiosInstance.delete(url, data),
     upload: (url: string, file: File) =>

@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-02-12 15:53:45
- * @LastEditTime: 2022-03-30 10:43:54
+ * @LastEditTime: 2022-04-20 17:27:30
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \vitecamp\src\views\home\index.vue
@@ -30,17 +30,22 @@
 import AppMain from "./components/AppMain.vue"
 import SideBar from "./components/side_bar/index.vue"
 import NavigationBar from "./components/navigation_bar/index.vue"
+
+
+
 </script>
 
 <style lang="scss" scoped>
 .layout {
     background-color: #e5e7eb61;
     height: 100vh;
+
     .header {
         width: 98%;
         padding: 0 !important;
         height: auto;
     }
+
     .main {
         width: 99%;
         overflow: hidden;

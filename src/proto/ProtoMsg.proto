@@ -1,7 +1,16 @@
 syntax = "proto3";
+
+//定义protobuf的包名称空间
+option java_package = "com.jw.telbot.nettyServer";
+// 消息体名称
+option java_outer_classname = "ProtoMsg";
 /*聊天消息*/
 message MessageRequest{
     string status = 1;          //状态
-    string key=2;  
-    string data = 3;          //数据
+    string key=2;
+    bytes data = 3;          //数据
+    string clientId=4;
+    string weChatId=5;
+    int32 state=6;  //100 ,200
+    string msg=7;
 }

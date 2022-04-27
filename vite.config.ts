@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-02-12 15:53:45
- * @LastEditTime: 2022-03-29 10:22:50
+ * @LastEditTime: 2022-04-07 18:01:17
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \vitecamp\vite.config.ts
@@ -11,7 +11,7 @@ import { resolve } from 'path';
 import presets from './presets/presets';
 import { svgBuilder } from './src/utils/svgBuilder';
 
-// const proxyDomain = 'http://127.0.0.1:8080/';
+const proxyDomain = "http://192.168.3.241:9999";
 
 // https://vitejs.dev/config/
 export default defineConfig((env) => {
@@ -36,18 +36,55 @@ export default defineConfig((env) => {
             cors: true, // 跨域设置允许
             strictPort: false, // 如果端口已占用直接退出
             // 接口代理
-            // proxy: {
-            //     '/api': {
-            //         target: proxyDomain,
-            //         changeOrigin: true, // 允许跨域
-            //         rewrite: (path) => path.replace('/api/', '/'),
-            //     },
-            // },
+            proxy: {
+                // '/api': {
+                //     target: proxyDomain,
+                //     changeOrigin: true, // 允许跨域
+                //     rewrite: (path) => path.replace('/api/', '/'),
+                // },
+                "/auth/": {
+                    target: proxyDomain,
+                    changeOrigin: true,
+                    pathRewrite: {
+                        "^/auth/": "/auth/"
+                    }
+                },
+                "/paima/": {
+                    target: proxyDomain,
+                    changeOrigin: true,
+                    pathRewrite: {
+                        "^/paima/": "/paima/"
+                    }
+                },
+                '/telbot/': {
+                    target: proxyDomain,
+                    changeOrigin: true,
+                    pathRewrite: {
+                        '^/telbot/': '/telbot/'
+                    }
+                },
+                '/wechat/': {
+                    target: proxyDomain,
+                    changeOrigin: true,
+                    pathRewrite: {
+                        '^/wechat/': '/wechat/'
+                    }
+                },
+                '/admin/': {
+                    target: proxyDomain,
+                    changeOrigin: true,
+                    pathRewrite: {
+                        '^/admin/': '/admin/'
+                    }
+                }
+            },
+
         },
         build: {
             brotliSize: false,
             // 消除打包大小超过500kb警告
             chunkSizeWarningLimit: 2000,
+            productionSourceMap: false,
             // 在生产环境移除console.log
             terserOptions: {
                 compress: {

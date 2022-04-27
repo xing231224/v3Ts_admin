@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-02-16 14:12:32
- * @LastEditTime: 2022-03-28 09:52:14
+ * @LastEditTime: 2022-04-21 10:08:39
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3-ts_demo\src\views\login\index.vue
@@ -12,17 +12,12 @@
             <div style="flex: 1" class="login-img flex-col-center">
                 <div style="width: 70%; margin: 0 auto">
                     <p class="flex" style="padding: 0 10px; position: relative; top: -120px">
-                        <img
-                            class="animate__animated animate__backInDown"
+                        <img class="animate__animated animate__backInDown"
                             style="border-radius: 50%; width: 60px; margin: 0 10px"
-                            src="../../assets/age1f-rzq97.png"
-                        />
+                            src="../../assets/age1f-rzq97.png" />
                         <span class="juz" style="font-size: 30px; font-weight: bold">后台系统管理</span>
                     </p>
-                    <img
-                        class="svg"
-                        src="../../assets/Clip_Applying_to_University_online_transparent_by_Icons8.gif"
-                    />
+                    <img class="svg" src="../../assets/Clip_Applying_to_University_online_transparent_by_Icons8.gif" />
                     <div style="padding: 0 20px" class="animate__animated animate__fadeInLeft">
                         <p style="font-size: 30px">开箱即用的后台管理系统</p>
                         <span>请输入您的账号和密码开始登录使用！！！</span>
@@ -30,15 +25,8 @@
                 </div>
             </div>
             <div style="flex: 1" class="flex-col-center">
-                <el-form
-                    id="login"
-                    ref="loginFormRef"
-                    :model="loginForm"
-                    :rules="loginRules"
-                    class="login-form"
-                    autocomplete="on"
-                    label-position="left"
-                >
+                <el-form id="login" ref="loginFormRef" :model="loginForm" :rules="loginRules" class="login-form"
+                    autocomplete="on" label-position="left">
                     <div id="owl-login" :class="isBlur ? 'password' : ''">
                         <div class="hand"></div>
                         <div class="hand hand-r"></div>
@@ -56,45 +44,20 @@
                             <i-ep-iphone />
                         </span>
 
-                        <el-input
-                            ref="userNameRef"
-                            v-model="loginForm.mobile"
-                            name="username"
-                            placeholder="手机号"
-                            type="text"
-                            tabindex="1"
-                            autocomplete="on"
-                        />
+                        <el-input ref="userNameRef" v-model="loginForm.mobile" name="username" placeholder="手机号"
+                            type="text" tabindex="1" autocomplete="on" />
                     </el-form-item>
-                    <el-tooltip
-                        v-model="capsTooltip"
-                        content="Caps lock is On"
-                        placement="right"
-                        manual
-                    >
-                        <el-form-item
-                            prop="password"
-                            class="animate__animated animate__fadeInRight ms-3"
-                        >
+                    <el-tooltip v-model="capsTooltip" content="Caps lock is On" placement="right" manual>
+                        <el-form-item prop="password" class="animate__animated animate__fadeInRight ms-3">
                             <span class="svg-container juz">
                                 <i-mdi-lock-outline />
                             </span>
-                            <el-input
-                                :key="passwordType"
-                                ref="passwordRef"
-                                v-model="loginForm.password"
-                                :type="passwordType"
-                                name="password"
-                                tabindex="2"
-                                autocomplete="on"
-                                @keyup="checkCapslock"
-                                @blur="
+                            <el-input :key="passwordType" ref="passwordRef" v-model="loginForm.password"
+                                :type="passwordType" name="password" tabindex="2" autocomplete="on"
+                                @keyup="checkCapslock" @blur="
     capsTooltip = false,
     isBlur = false;
-                                "
-                                @focus="isBlur = true"
-                                @keyup.enter="handleLogin"
-                            />
+                                " @focus="isBlur = true" @keyup.enter="handleLogin" />
                             <a></a>
                             <span class="show-pwd" @click="showPwd">
                                 <i-mdi-eye v-if="passwordType === 'password'" />
@@ -103,7 +66,7 @@
                         </el-form-item>
                     </el-tooltip>
 
-                    <el-form-item prop="code" class="animate__animated animate__fadeInRight ms-3">
+                    <!-- <el-form-item prop="code" class="animate__animated animate__fadeInRight ms-3">
                         <span class="svg-container juz">
                             <i-icomoon-free-codepen />
                         </span>
@@ -121,14 +84,9 @@
                                 @click="getMobileCode"
                             >{{ text }}</el-button>
                         </div>
-                    </el-form-item>
-                    <el-button
-                        class="animate__animated animate__fadeInRight ms-4"
-                        :loading="loading"
-                        type="primary"
-                        style="width: 100%"
-                        @click="handleLogin"
-                    >验证码登录</el-button>
+                    </el-form-item>-->
+                    <el-button class="animate__animated animate__fadeInRight ms-4" :loading="loading" type="primary"
+                        style="width: 100%" @click="handleLogin">登录</el-button>
                     <div style="position: relative">
                         <div class="tips">
                             <span></span>
@@ -202,8 +160,11 @@
 </template>
 
 <script setup lang="ts">
+import store from "@/store/user"
+
+const { proxy: { $tips } } = getCurrentInstance() as any;
 const router = useRouter();
-const { proxy } = getCurrentInstance() as any;
+const userStore = store()
 const validateMobile = (rule: any, value: string, callback: Function) => {
     if (!/^1[34578]\d{9}$/.test(value)) {
         callback(new Error('手机号格式不正确'));
@@ -223,9 +184,8 @@ const loginFormRef = ref(null);
 const passwordRef = ref(null);
 const state = reactive({
     loginForm: {
-        mobile: '15779333244',
-        code: '',
-        password: 'pwx123.456',
+        mobile: '18270811535',
+        password: '123456',
     },
     loginRules: {
         mobile: [{ validator: validateMobile, trigger: 'blur' }],
@@ -242,69 +202,50 @@ const state = reactive({
     time: 60,
     isBlur: false,
 });
-const text = computed(() => {
-    if (state.timeFlag === false && state.time > 0) {
-        return '获取验证码';
-    }
-    return state.time > 0 ? `${state.time}s` : '重新获取';
-});
+// const text = computed(() => {
+//     if (state.timeFlag === false && state.time > 0) {
+//         return '获取验证码';
+//     }
+//     return state.time > 0 ? `${state.time}s` : '重新获取';
+// });
 const handleLogin = () => {
     (loginFormRef.value as any).validate(async (valid: boolean) => {
         if (valid) {
             state.loading = true;
-            router.push('/home');
-            // mobileLogin(this.loginForm).then((res) => {
-            //   if (res.data.status === 200) {
-            //     getUserInfo(res.data.data).then((response) => {
-            //       if (response.data.status === 200) {
-            //         let info = response.data.data;
-            //         info.memberId = res.data.data;
-            //         localStorage.setItem("info", JSON.stringify(info));
-            //         this.$message.success("登陆成功！！！");
-            //         this.$router.push("/advanceOrder/creatOrder");
-            //       }
-            //     });
-            //   } else {
-            //     this.$message.error(res.data.msg);
-            //   }
-            // });
+            userStore.MobileLogin(state.loginForm).then(() => {
+                router.replace('/');
+            }).catch(error => {
+                $tips('error', error)
+            })
             // Just to simulate the time of the request
             // setTimeout(() => {
-            //   state.loading = false;
+            //     state.loading = false;
             // }, 0.5 * 1000);
         } else {
             return false;
         }
     });
 };
-function timer() {
-    if (state.time > 0) {
-        state.timeFlag = true;
-        // eslint-disable-next-line no-plusplus
-        state.time--;
-        setTimeout(timer, 1000);
-    } else {
-        state.timeFlag = false;
-    }
-}
-const getMobileCode = () => {
-    state.time = 60;
-    if (!state.loginForm.mobile) {
-        proxy.$tips('error', '请输入手机号码');
-    } else if (!/^1[34578]\d{9}$/.test(state.loginForm.mobile)) {
-        proxy.$tips('error', '手机号格式不正确');
-    } else {
-        timer();
-        // getCode(this.loginForm).then((response) => {
-        //   if (response.data.status === 200) {
-        //     this.timer();
-        //     this.$message.success("验证码发送成功");
-        //   } else {
-        //     this.$message.error(response.data.msg);
-        //   }
-        // });
-    }
-};
+// function timer() {
+//     if (state.time > 0) {
+//         state.timeFlag = true;
+//         // eslint-disable-next-line no-plusplus
+//         state.time--;
+//         setTimeout(timer, 1000);
+//     } else {
+//         state.timeFlag = false;
+//     }
+// }
+// const getMobileCode = () => {
+//     state.time = 60;
+//     if (!state.loginForm.mobile) {
+//         proxy.$tips('error', '请输入手机号码');
+//     } else if (!/^1[34578]\d{9}$/.test(state.loginForm.mobile)) {
+//         proxy.$tips('error', '手机号格式不正确');
+//     } else {
+//         timer();
+//     }
+// };
 function checkCapslock(e: any) {
     const { key } = e;
     if (!key) return;
@@ -320,15 +261,17 @@ function showPwd() {
         (passwordRef.value as any).focus();
     });
 }
-const { loginForm, loginRules, loading, isBlur, passwordType, capsTooltip, timeFlag } = toRefs(state);
+const { loginForm, loginRules, loading, isBlur, passwordType, capsTooltip } = toRefs(state);
 </script>
 
 <style lang="scss" scoped>
 @import "../../assets/styles/login.css";
+
 .login-container {
     height: 100%;
     width: 100%;
     overflow: hidden;
+
     &::before {
         position: absolute;
         top: 0;
@@ -342,10 +285,12 @@ const { loginForm, loginRules, loading, isBlur, passwordType, capsTooltip, timeF
         background-size: auto 100%;
         content: "";
     }
+
     :deep(.el-input) {
         display: inline-block;
         height: 47px;
         width: 60%;
+
         input {
             height: 47px;
             background: transparent;
@@ -371,6 +316,7 @@ const { loginForm, loginRules, loading, isBlur, passwordType, capsTooltip, timeF
         color: #454545;
         margin-bottom: 20px;
     }
+
     .layout {
         position: relative;
         width: 90%;
@@ -382,6 +328,7 @@ const { loginForm, loginRules, loading, isBlur, passwordType, capsTooltip, timeF
             max-width: 100%;
             margin: 0 auto;
             color: #fff;
+
             .svg {
                 width: 100%;
                 position: relative;
@@ -389,6 +336,7 @@ const { loginForm, loginRules, loading, isBlur, passwordType, capsTooltip, timeF
             }
         }
     }
+
     video {
         position: absolute;
         /* Vertical and Horizontal center*/
@@ -401,6 +349,7 @@ const { loginForm, loginRules, loading, isBlur, passwordType, capsTooltip, timeF
         object-fit: cover;
         z-index: -1;
     }
+
     .login-form {
         width: 440px;
         max-width: 100%;
@@ -412,6 +361,7 @@ const { loginForm, loginRules, loading, isBlur, passwordType, capsTooltip, timeF
         :deep(.is-disabled .el-input__inner) {
             background: transparent;
         }
+
         :deep(.el-form-item__content) {
             line-height: normal;
         }
@@ -483,12 +433,15 @@ const { loginForm, loginRules, loading, isBlur, passwordType, capsTooltip, timeF
         //   background-position: center;
         // }
     }
+
     .ms-2 {
         --animate-duration: 400ms;
     }
+
     .ms-3 {
         --animate-duration: 600ms;
     }
+
     .ms-4 {
         --animate-duration: 800ms;
     }
