@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-30 14:17:46
- * @LastEditTime: 2022-04-14 15:22:46
+ * @LastEditTime: 2022-04-29 10:51:11
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\verbalTRStock\index.vue
@@ -151,6 +151,9 @@ const state = reactive<{ [propName: string]: any }>({
     trickName: '',
     newTrickName: '',
     isPreserve: false, // 是否保存
+    contentPosition: {
+        left: null, top: null
+    },
     moveDataelse: {
         x: null,
         y: null,
@@ -403,7 +406,8 @@ function drog() {
                 Math.min(e.clientY - offsetY, 0),
                 -(content.clientHeight - warp.clientHeight),
             )
-
+            state.contentPosition.left = left
+            state.contentPosition.top = top
             content.style.left = `${left}px`;
             content.style.top = `${top}px`;
             lookView.style.left = `${-left / 50}px`;
@@ -631,19 +635,21 @@ function windowMouseup() {
     nextTick(() => {
         if (state.cloneDiv) {
             const parents = document.getElementsByClassName('diagramContainer-warp')[0] as any;
-            const topP = parents?.offsetTop || 0;
-            const leftP = parents?.offsetLeft || 0;
-            const btnT = state.cloneDiv.offsetTop;
-            const btnL = state.cloneDiv.offsetLeft;
+            const topP = parents?.offsetTop || 0;  // 可视区的top
+            const leftP = parents?.offsetLeft || 0; // 可视区的left
+            const btnT = state.cloneDiv.offsetTop; // 距离父元素的top
+            const btnL = state.cloneDiv.offsetLeft; // 距离父元素的left
             if (btnT <= topP || btnL <= leftP) {
                 $tips('warning', '不在区域内！！！');
                 state.cloneDiv.remove();
                 state.cloneDiv = null;
                 return;
             }
+            console.log(btnT - topP + state.movePosition.y, btnL - leftP + state.movePosition.x);
+
             state.list.push({
                 id: state.list.length,
-                position: `${btnT - topP + 3000},${btnL - leftP + 3000}`,
+                position: `${btnT - state.contentPosition.top - 70},${btnL - state.contentPosition.left}`,
             });
             state.cloneDiv.remove(); // 删除
             state.cloneDiv = null;

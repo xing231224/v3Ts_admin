@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-25 14:21:47
- * @LastEditTime: 2022-04-18 18:05:53
+ * @LastEditTime: 2022-04-30 16:34:17
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\mirandaIM\content\inputInfo.vue
@@ -11,7 +11,7 @@
     <div class="input_utils">
         <el-popover placement="top" :width="255" trigger="hover">
             <template #reference>
-                <span style="display: inline-block;">
+                <span>
                     <i-twemoji-face-without-mouth />
                 </span>
             </template>
@@ -21,37 +21,54 @@
                 </el-scrollbar>
             </template>
         </el-popover>
+        <span style="position: relative;">
+            <i-icon-park-folder-upload />
+            <input ref="upload"
+                style="width: 100%;height: 100%;position: absolute;top: 0;left: 0;cursor: pointer;opacity: 0;"
+                type="file" @change="fileChange">
+        </span>
     </div>
     <!-- <div id="editor" @keyup.ctrl.enter="sendInfo" @paste="pasteIntercept($event)"></div> -->
     <InputBox id="editor" ref="inpuBox" :enter="sendInfo" />
 </template>
 
 <script setup lang='ts'>
+import * as qiniu from 'qiniu-js';
+import { qiNiuToken } from '@/api/qiniu';
 // import WangEditor from "wangeditor"
 
 const { proxy: { $websocket } } = getCurrentInstance() as any;
-// interface stateType {
-//     context: string,
-//     dialogVisible: boolean,
-// }
+const emit = defineEmits(['get-progress', 'success-upload'])
 interface getEMOType {
     key: string,
     value: string,
     html: HTMLSpanElement
 }
 const inpuBox = ref()
-// const state = reactive<stateType>({
-//     context: "",
-//     dialogVisible: true,
-// })
+const state = reactive({
+    fileURL: '',
+    filePercent: 0, // 上传进度
+    token: '',
+    baseurl: "http://pic.hzjiuwang.com",
+    file: {} as File
+})
 // 发送给最老辈组件的数据
 // const openDialog = inject('openDialog') as Function
+// 监听上传进度给父组件
+watch(() => state.filePercent, (n) => {
+    // const obj = {
+    //     fileURL: state.fileURL,
+    //     filePercent: state.filePercent,
+    //     file: state.file
+    // }
+    emit('get-progress', n)
+})
 // 发送消息
 const sendInfo = () => {
     // openDialog(true)
     // 得实体化
     const obj = { status: "", key: "3333", data: '2221454' }
-    $websocket.webSocketSendMsg(obj, 'MessageRequest')
+    $websocket.webSocketSendMsg(obj)
 }
 // 接收消息
 $websocket.getWebSocketMsg((msg: any) => {
@@ -63,24 +80,57 @@ $websocket.getWebSocketMsg((msg: any) => {
 const getEmo = (obj: getEMOType) => {
     inpuBox.value.insertStr(obj.key)
 }
+// 上传
+function uploadFile(file: File) {
+    // 上传时的配置
+    const config = {
+        useCdnDomain: true,
+    };
+    //  设置文件的配置
+    const putExtra = {
+        fname: "",
+        params: {},
+        mimeType: null,
+    };
+    const key = file.name;
+    //   实例化七牛云的上传实例
+    const observable = qiniu.upload(file, key, state.token, putExtra, config);
+    //   设置实例的监听对象
+    const observer = {
+        //   接收上传进度信息
+        next(res: { total: { percent: string; }; }) {
+            // 上传进度
+            state.filePercent = parseInt(res.total.percent, 10);
+        },
+        // 接收上传错误信息
+        error(err: any) {
+            console.log(err);
+        },
+        // 接收上传完成后的信息
+        complete(res: { key: string; }) {
+            // 拼接路径字符串
+            state.fileURL = `${state.baseurl}/${res.key}`;
+            emit("success-upload", { fileURL: state.fileURL, file })
+        },
+    };
+    // 上传开始
+    // const subscription = observable.subscribe(observer);
+    observable.subscribe(observer);
+}
+// 获取文件
+const fileChange = (e: Event) => {
+    const file = (e.target as HTMLInputElement).files?.item(0) as File
+    uploadFile(file)
+}
 
-// onMounted(() => {
-//     state.editor = new WangEditor('#editor')
-//     // 菜单配置
-//     state.editor.config.menus = []
-//     // 全屏配置
-//     state.editor.config.showFullScreen = false
-//     // 高度配置
-//     state.editor.config.height = 100
-//     // 提示配置
-//     state.editor.config.placeholder = ''
-//     // 监听函数
-//     state.editor.config.onchange = (html: string) => {
-//         // 第二步，监控变化，同步更新到 textarea
-//         state.context = html
-//     }
-//     state.editor.create()
-// })
+function getQiNiuToken() {
+    qiNiuToken().then((res: { data: { data: string } }) => {
+        state.token = res.data.data;
+    });
+}
+onMounted(() => {
+    getQiNiuToken()
+})
 
 // const { editor } = toRefs(state)
 </script>
@@ -99,7 +149,13 @@ const getEmo = (obj: getEMOType) => {
     height: 20px;
     padding: 10px;
     box-sizing: content-box;
+    display: flex;
+
     // border-bottom: 1px solid #e5e7eb;
+    span {
+        margin-right: 10px;
+        cursor: pointer;
+    }
 }
 
 #editor {

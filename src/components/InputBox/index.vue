@@ -1,12 +1,16 @@
 <!--
  * @Author: your name
  * @Date: 2022-04-02 10:45:44
- * @LastEditTime: 2022-04-06 09:24:37
+ * @LastEditTime: 2022-04-30 14:57:05
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\components\InputBox\index.vue
 -->
 <template>
+    <!-- <div ref="input_box" class="input_box" contenteditable="true" @drag="dropHandler" @dragover="dragoverHandler"
+        @keydown="inputKeyUp">
+        <p>&nbsp;</p>
+    </div> -->
     <div ref="input_box" class="input_box" contenteditable="true" @keydown="inputKeyUp">
         <p>&nbsp;</p>
     </div>
@@ -120,8 +124,64 @@ const getChildNode = (type: string) => {
 //         }
 //     }
 // }
+// 拖放事件
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function dropHandler(e: DragEvent) {
+    e.preventDefault()
+    const files: File[] = [];
+    [].forEach.call(e.dataTransfer?.files, (file) => {
+        files.push(file);
+    }, false);
+    const last = files[0].name.substring(files[0].name.lastIndexOf(".")); // 将接口中返回的各文件链接进行截取，来判断属于什么格式文件
+    let icoURL = ''
+    console.log(files);
+    // 追加html 文件
+    if (last == ".pdf") {
+        icoURL = 'https://img0.baidu.com/it/u=3644622474,3688361323&fm=26&fmt=auto&gp=0.jpg'
+    } else if (
+        last == ".png" ||
+        last == ".jpg" ||
+        last == ".jpeg" ||
+        last == ".jfif"
+    ) {
+        icoURL = ''
+    } else if (last == ".doc" || last == ".docx" || last == ".txt") {
+        icoURL = 'https://img1.baidu.com/it/u=1714136260,3766911961&fm=26&fmt=auto&gp=0.jpg'
+    } else if (last == ".xls" || last == ".xlsx") {
+        icoURL = 'https://img1.baidu.com/it/u=1123362811,2189997153&fm=26&fmt=auto&gp=0.jpg'
+    } else if (
+        last == ".mp4" ||
+        last == ".mov" ||
+        last == ".m4v" ||
+        last == ".wmv"
+    ) {
+        icoURL = ''
+    }
+    const html = `
+            <p style="display:flex;justify-content: center;flex-direction: column;width: 50px;">
+                <img src="${icoURL}" alt="">
+                <span style='text-align: center;'>${files[0].name}</span>
+            </p>
+            `
+    insertStr(html)
+}
+
+// 拖放事件，获取位置
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function dragoverHandler(e: Event) {
+    // console.log(e);
+    e.preventDefault()
+}
+
 onMounted(() => {
     input_box.value?.focus()
+    // 禁止浏览器打开拖拽的图片
+    // document.addEventListener('drop', dropHandler, false);
+    // document.addEventListener('dragover', dragoverHandler, false);
+})
+onUnmounted(() => {
+    // document.removeEventListener('drop', dropHandler, false);
+    // document.removeEventListener('dragover', dragoverHandler, false);
 })
 // 使用这个方法导出方法或者属性 便于父组件通过ref 获取到实例
 defineExpose({

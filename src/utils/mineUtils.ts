@@ -90,3 +90,10 @@ export function parseTime(time: any, cFormat: string) {
 export function randomKey() {
     return `${new Date().getTime()}${v4()}`
 }
+
+// 数组扁平化
+export function flatten(arr: any[]): [] {
+    return arr.reduce((prev, next) => {
+        return prev.concat(Array.isArray(next) ? flatten(next) : next)
+    }, [])
+}

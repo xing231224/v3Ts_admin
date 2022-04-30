@@ -5,6 +5,7 @@
 declare module 'vue' {
   export interface GlobalComponents {
     ElAside: typeof import('element-plus/es')['ElAside']
+    ElAutocomplete: typeof import('element-plus/es')['ElAutocomplete']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
     ElBadge: typeof import('element-plus/es')['ElBadge']
     ElButton: typeof import('element-plus/es')['ElButton']
@@ -33,6 +34,7 @@ declare module 'vue' {
     Emoji: typeof import('./components/Emoji/index.vue')['default']
     IEpIphone: typeof import('~icons/ep/iphone')['default']
     IGisSearchAttribtues: typeof import('~icons/gis/search-attribtues')['default']
+    IIconParkFolderUpload: typeof import('~icons/icon-park/folder-upload')['default']
     IIconParkOutlinePeopleSpeak: typeof import('~icons/icon-park-outline/people-speak')['default']
     IIonIosCloseCircleOutline: typeof import('~icons/ion/ios-close-circle-outline')['default']
     IMdiEye: typeof import('~icons/mdi/eye')['default']

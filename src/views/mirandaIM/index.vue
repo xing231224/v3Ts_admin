@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-21 14:09:09
- * @LastEditTime: 2022-04-26 16:44:06
+ * @LastEditTime: 2022-04-28 15:17:31
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3-ts_demo\src\views\mirandaIM\index.vue
@@ -77,16 +77,17 @@ import Content from './content/index.vue'
 import VerbalTrickVue from './verbalTR/index.vue'
 import WeCahtLogin from "./weChatLogin/index.vue"
 import Store from "@/store/message"
+import userStore from "@/store/user"
 
 
-
-
+const { proxy: { $websocket } } = getCurrentInstance() as any;
 const myMessage = Store()
+const myuserStore = userStore()
 const state = reactive({
     value: false,
     dialogVisible: false,
     isHidden: false,
-    dataList: [],
+    dataList: [[], [], []],
     isContentMess: false
 })
 const imgSrc = ref('')
@@ -96,6 +97,28 @@ const handleClose = () => {
 const openDialog = (bool: boolean) => {
     state.dialogVisible = bool
 }
+$websocket.webSocketSendMsg({ key: '', status: '10', data: { userId: `${myuserStore.userId}` } })
+$websocket.webSocketSendMsg({ key: '', status: '7', data: { userId: `${myuserStore.userId}` } })
+$websocket.webSocketSendMsg({ key: '', status: '8', data: { userId: `${myuserStore.userId}` } })
+$websocket.webSocketSendMsg({ key: '', status: '9', data: { userId: `${myuserStore.userId}` } })
+$websocket.getWebSocketMsg((obj: any) => {
+    switch (obj.status) {
+        case '7':
+            state.dataList[0] = obj.data
+            break;
+        case '8':
+            state.dataList[1] = obj.data
+            break;
+        case '9':
+            state.dataList[2] = obj.data
+            break;
+        case '10':
+            myMessage.accounts = obj.data
+            break;
+        default:
+            break;
+    }
+})
 // 传递参数给子孙组件
 console.log(state.dataList);
 provide("dataList", state.dataList)

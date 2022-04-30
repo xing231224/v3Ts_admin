@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-25 10:39:43
- * @LastEditTime: 2022-04-15 15:43:46
+ * @LastEditTime: 2022-04-30 16:36:49
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\mirandaIM\content\index.vue
@@ -10,7 +10,7 @@
     <!-- vue3页面 -->
     <el-container class="content">
         <el-header height="auto" class="flex-sb" style="padding: 0; border-bottom: 1px solid #e5e7eb;">
-            <p>{{ contentMess.nickName }}</p>
+            <p>{{ contentMess.name }}</p>
             <div v-if="isHidden" class="juz" style="margin-right: 10px;cursor: pointer;" @click="openVerbal()">
                 <i-teenyicons-double-caret-right-outline class="wh_16" />
             </div>
@@ -19,8 +19,9 @@
             <ul class="message">
                 <li class="opposite">
                     <div class="flex">
-                        <el-avatar shape="square" :size="20" style="display: block;" :src="contentMess.avatar" />
-                        <span class="juz" style="margin: 0 10px;">{{ contentMess.nickName }}</span>
+                        <el-avatar shape="square" :size="20" style="display: block;"
+                            :src="contentMess.avatorUrl ? contentMess.avatorUrl : `https://imgsa.baidu.com/forum/pic/item/023b5bb5c9ea15ce85b34b6eb1003af33a87b27c.jpg`" />
+                        <span class="juz" style="margin: 0 10px;">{{ contentMess.name }}</span>
                         <span class="juz">{{ contentMess.newTime }}</span>
                     </div>
                     <span class="opposite_content">{{ contentMess.context }}</span>
@@ -42,7 +43,7 @@
             </ul>
         </el-main>
         <el-footer height="200px" class="footer">
-            <inputInfoVue />
+            <inputInfoVue @get-progress="getProgress" @success-upload="successUpload" />
         </el-footer>
     </el-container>
 </template>
@@ -60,7 +61,13 @@ const isHidden = ref(false)
 const openVerbal = () => {
     myMessage.setHiddenAside(false)
 }
-
+// 获取file信息以及上传进度 上传 成功 之后的url
+const getProgress = (filePercent: number) => {
+    console.log(filePercent);
+}
+const successUpload = (obj: { file: File, fileURL: string }) => {
+    console.log(obj);
+}
 watchEffect(() => {
     contentMess.value = computed(() => myMessage.getContextObj).value
     isHidden.value = computed(() => myMessage.getHiddenAside).value
