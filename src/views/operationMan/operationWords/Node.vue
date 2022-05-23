@@ -1,47 +1,58 @@
 <!--
  * @Author: your name
  * @Date: 2022-04-06 12:01:42
- * @LastEditTime: 2022-04-14 15:18:53
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2022-05-23 15:21:05
+ * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\verbalTRStock\Processnode.vue
 -->
 <template>
-    <div :id="`node_move${dataObj?.id}`" class="node_move" :style="`top:${dataObj?.top}px;left:${dataObj?.left}px`"
-        @dblclick="dialogFn" @mouseup="mouseup">
+    <div
+        :id="`node_move${dataObj?.id}`"
+        class="node_move"
+        :style="`top:${dataObj?.top}px;left:${dataObj?.left}px`"
+        @dblclick="dialogFn"
+        @mouseup="mouseup"
+    >
         <div :id="`node_main${dataObj?.id}`" class="node_main">
             <div class="node_header">
                 <p class="flex-sb">
-                    <span style="flex: 1; word-wrap: break-word;word-break: break-all;">
-                        {{ createObj.name || "流程节点" }}
+                    <span style="flex: 1; word-wrap: break-word; word-break: break-all">
+                        {{ createObj.name || '流程节点' }}
                     </span>
                     <!-- 倒计时 -->
-                    <span v-show="countDownTime && countDownNum !== 0" style="margin-right: 10px;position: relative;">{{
+                    <span v-show="countDownTime && countDownNum !== 0" style="margin-right: 10px; position: relative">{{
                         countDownNum
                     }}</span>
                     <span class="juz">
-                        <i-mdi-microphone :class="
-                            recorderStatus
-                                ? 'microphone colorRed'
-                                : 'microphone'
-                        " @mousedown.stop="recordFn" @mouseup.stop="emptyTime" @click.stop="playRecorder" />
+                        <i-mdi-microphone
+                            :class="recorderStatus ? 'microphone colorRed' : 'microphone'"
+                            @mousedown.stop="recordFn"
+                            @mouseup.stop="emptyTime"
+                            @click.stop="playRecorder"
+                        />
                     </span>
                 </p>
                 <i-ion-ios-close-circle-outline class="delete" @click="detele(`node_move${dataObj?.id}`)" />
             </div>
             <div class="node_content">{{ createObj.content }}</div>
             <div class="node_tags">
-                <el-tag v-for="(item, index) in list" :id="`node_tags${item.id}`" :key="item.id"
-                    style="padding: 0;padding-top: 4px;margin-right: 2px;" @contextmenu.prevent="delBranch(index)">
+                <el-tag
+                    v-for="(item, index) in list"
+                    :id="`node_tags${item.id}`"
+                    :key="item.id"
+                    style="padding: 0; padding-top: 4px; margin-right: 2px"
+                    @contextmenu.prevent="delBranch(index)"
+                >
                     <el-popover v-if="isPre" trigger="click" placement="bottom">
                         <Select :data-obj="branchList[index]" @change-name="changeData"></Select>
                         <template #reference>
-                            <span style="position: relative; top: -4px; cursor: pointer;padding:6px 4px;">{{
+                            <span style="position: relative; top: -4px; cursor: pointer; padding: 6px 4px">{{
                                 item.name
                             }}</span>
                         </template>
                     </el-popover>
-                    <span v-else style="position: relative; top: -4px; cursor: pointer;padding: 4px;">
+                    <span v-else style="position: relative; top: -4px; cursor: pointer; padding: 4px">
                         {{ item.name }}
                     </span>
                 </el-tag>
@@ -49,8 +60,14 @@
         </div>
     </div>
     <video ref="videoPlay" style="display: none" :src="videoUrl"></video>
-    <el-dialog v-model="dialogVisible" title="流程节点" width="30%" :close-on-click-modal="false" :append-to-body="true"
-        @close="handleClose">
+    <el-dialog
+        v-model="dialogVisible"
+        title="流程节点"
+        width="30%"
+        :close-on-click-modal="false"
+        :append-to-body="true"
+        @close="handleClose"
+    >
         <div class="flex">
             <span class="juz" style="width: 80px">节点名称：</span>
             <div>
@@ -73,74 +90,68 @@
     </el-dialog>
 </template>
 
-<script setup lang='ts'>
-import { ElMessageBox } from "element-plus"
-import Recorder from "js-audio-recorder";
+<script setup lang="ts">
+import { ElMessageBox } from 'element-plus';
+import Recorder from 'js-audio-recorder';
 import * as qiniu from 'qiniu-js';
-import { v4 } from "uuid"
-import Select from "./Select.vue"
-import UpLoad from "./upLoad.vue";
-import {
-    createNode,
-    delNode,
-    delBranchNode,
-} from "@/api/modules/operationMang/operationword";
+import { v4 } from 'uuid';
+import Select from './Select.vue';
+import UpLoad from './upLoad.vue';
+import { createNode, delNode, delBranchNode } from '@/api/modules/operationMang/operationword';
 
-
-const { proxy: { $tips, $plumbIns } } = getCurrentInstance() as any;
-const uuid = v4
-const emit = defineEmits(['getInfo', 'delNodeFn', 'mouseup', 'delConnect'])
+const {
+    proxy: { $tips, $plumbIns },
+} = getCurrentInstance() as any;
+const uuid = v4;
+const emit = defineEmits(['getInfo', 'delNodeFn', 'mouseup', 'delConnect']);
 // eslint-disable-next-line vue/require-prop-types
-const props = defineProps(['dataObj', 'scenariosInfo', 'isPreserve', 'token'])
-const upLoad = ref()
-const videoPlay = ref()
+const props = defineProps(['dataObj', 'scenariosInfo', 'isPreserve', 'token']);
+const upLoad = ref();
+const videoPlay = ref();
 const state = reactive<Record<string, any>>({
     dialogVisible: false,
     createObj: {
-        name: "",
-        content: "",
+        name: '',
+        content: '',
     },
     fromObj: {
-        name: "",
-        content: "",
+        name: '',
+        content: '',
     },
     nodeObj: {
         isShow: false,
     },
     list: [
-        { id: uuid(), name: "肯定" },
-        { id: uuid(), name: "否定" },
-        { id: uuid(), name: "没听清" },
-        { id: uuid(), name: "其他" },
-        { id: uuid(), name: "待编辑" },
+        { id: uuid(), name: '肯定' },
+        { id: uuid(), name: '否定' },
+        { id: uuid(), name: '没听清' },
+        { id: uuid(), name: '其他' },
+        { id: uuid(), name: '待编辑' },
     ], // 页面展示
     branchList: [], // 后端需要的数据
     common: {
         isSource: true,
-        connector: [
-            "Bezier",
-            { gap: 10, cornerRadius: 5, alwaysRespectStubs: true },
-        ],
-        endpoint: "Dot",
+        connector: ['Bezier', { gap: 10, cornerRadius: 5, alwaysRespectStubs: true }],
+        endpoint: 'Dot',
         isTarget: true,
-        cssClass: "z_index",
+        cssClass: 'z_index',
         paintStyle: {
-            fill: "#409eff",
+            fill: '#409eff',
             radius: 6,
         },
         connectorStyle: {
             strokeWidth: 1,
-            stroke: "rgb(97, 183, 207)",
+            stroke: 'rgb(97, 183, 207)',
         },
         connectorHoverStyle: {
-            stroke: "red",
+            stroke: 'red',
             strokeWidth: 2,
         },
         connectorOverlays: [
             // ["Arrow", { width: 12, length: 12, location: 0.35 }],
             // ["Arrow", { width: 12, length: 12, location: 0.65 }],
-            ["Arrow", { width: 12, length: 12, location: 0.5 }],
-            ["Arrow", { width: 12, length: 12, location: 1 }],
+            ['Arrow', { width: 12, length: 12, location: 0.5 }],
+            ['Arrow', { width: 12, length: 12, location: 1 }],
         ],
     },
     EndpointList: [], // 所有端点id
@@ -150,20 +161,20 @@ const state = reactive<Record<string, any>>({
     countDownNum: 3,
     recorderStatus: false, // 录音状态
     recorder: null,
-    videoUrl: "",
-    baseurl: "http://pic.hzjiuwang.com",
+    videoUrl: '',
+    baseurl: 'http://pic.hzjiuwang.com',
     filePercent: 0,
     firstTime: 0,
     lastTime: 0,
     // 定义一个开始时间和结束时间
     eventFlag: false,
     memberId: null,
-})
+});
 
 const mouseup = (e: MouseEvent) => {
-    emit('mouseup', e)
-}
-function changeData(val: { name: any; }) {
+    emit('mouseup', e);
+};
+function changeData(val: { name: any }) {
     state.list[state.list.length - 1].name = val.name;
     state.branchList[state.branchList.length - 1].name = val.name;
 }
@@ -176,12 +187,12 @@ function addDot(id: any, position: any, common: any) {
             anchors: position,
             uuid: id,
         },
-        common
+        common,
     );
 }
 // 删除获取信息节点id
 function delInfoId(eleId: string) {
-    state.EndpointList.forEach((value: { id: any; }, t: any) => {
+    state.EndpointList.forEach((value: { id: any }, t: any) => {
         if (value.id == eleId) {
             state.EndpointList.splice(t, 1);
         }
@@ -189,35 +200,35 @@ function delInfoId(eleId: string) {
 }
 // 删除小节点
 function delBranch(index: number) {
-    ElMessageBox.confirm("确定删除所点击的节点吗?", "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
+    ElMessageBox.confirm('确定删除所点击的节点吗?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
     })
         .then(() => {
             if (!state.isPre) {
                 //   没有创建过得
-                state.list.forEach((item: { id: any; }, i: any) => {
+                state.list.forEach((item: { id: any }, i: any) => {
                     if (index === i) {
                         $plumbIns.remove(`node_tags${item.id}`);
                         state.list.splice(index, 1);
                         delInfoId(`node_tags${item.id}`);
-                        $tips("success", "删除成功！！！");
+                        $tips('success', '删除成功！！！');
                     }
                 });
                 return;
             }
-            state.branchList.forEach((item: { id: any; }, i: any) => {
+            state.branchList.forEach((item: { id: any }, i: any) => {
                 if (index === i) {
-                    delBranchNode(item.id).then((res: { data: { status: number; msg: any; }; }) => {
+                    delBranchNode(item.id).then((res: { data: { status: number; msg: any } }) => {
                         if (res.data.status === 200) {
                             $plumbIns.remove(`node_tags${item.id}`);
                             state.list.splice(index, 1);
                             state.branchList.splice(index, 1);
                             delInfoId(`node_tags${item.id}`);
-                            $tips("success", "删除成功！！！");
+                            $tips('success', '删除成功！！！');
                         } else {
-                            $tips("error", res.data.msg);
+                            $tips('error', res.data.msg);
                         }
                     });
                 }
@@ -230,8 +241,8 @@ function getPosition() {
     const ele =
         document.getElementById(`node_move${props.dataObj?.id}`) ||
         document.getElementById(`node_move${state.nodeObj.id}`);
-    const top = ele?.style.top.substring(0, ele.style.top.indexOf("px"));
-    const left = ele?.style.left.substring(0, ele.style.left.indexOf("px"));
+    const top = ele?.style.top.substring(0, ele.style.top.indexOf('px'));
+    const left = ele?.style.left.substring(0, ele.style.left.indexOf('px'));
     return `${top},${left}`;
 }
 // 修改Id
@@ -240,11 +251,9 @@ function editId(oldId: string, newId: string) {
 }
 // 新建节点
 function affirm() {
-    if (!state.fromObj.name)
-        return $tips("warning", "节点名称不得为空！！！");
-    if (!state.fromObj.content)
-        return $tips("warning", "节点内容不得为空！！！");
-    state.createObj.vos = upLoad.value.fileList.map((item: { realurl: any; }) => {
+    if (!state.fromObj.name) return $tips('warning', '节点名称不得为空！！！');
+    if (!state.fromObj.content) return $tips('warning', '节点内容不得为空！！！');
+    state.createObj.vos = upLoad.value.fileList.map((item: { realurl: any }) => {
         return { realurl: item.realurl };
     });
     state.createObj.scenariosId = props.scenariosInfo?.id;
@@ -256,32 +265,22 @@ function affirm() {
         state.createObj.id = state.nodeObj.id;
         state.createObj.branchList = state.branchList;
     } else {
-        state.createObj.branchList = state.list.map((item: { name: any; }) => {
+        state.createObj.branchList = state.list.map((item: { name: any }) => {
             return { name: item.name };
         });
     }
-    createNode(state.createObj).then((res: { data: { status: number; data: { branchList: any[]; id: any; }; }; }) => {
+    createNode(state.createObj).then((res: { data: { status: number; data: { branchList: any[]; id: any } } }) => {
         if (res.data.status == 200) {
             // 没创建过得
             if (!state.isPre) {
-                res.data.data.branchList.forEach((item: { id: string; }, index: string | number) => {
-                    editId(
-                        `node_tags${state.list[index].id}`,
-                        `node_tags${item.id}`
-                    );
+                res.data.data.branchList.forEach((item: { id: string }, index: string | number) => {
+                    editId(`node_tags${state.list[index].id}`, `node_tags${item.id}`);
                 });
-                editId(
-                    `node_move${props.dataObj?.id}`,
-                    `node_move${res.data.data.id}`
-                );
-                editId(
-                    `node_main${props.dataObj?.id}`,
-                    `node_main${res.data.data.id}`
-                );
-                state.nodeObj.isShow = true
-
+                editId(`node_move${props.dataObj?.id}`, `node_move${res.data.data.id}`);
+                editId(`node_main${props.dataObj?.id}`, `node_main${res.data.data.id}`);
+                state.nodeObj.isShow = true;
             } else {
-                res.data.data.branchList.forEach((item: { keyword: any; id: string; }, index: string | number) => {
+                res.data.data.branchList.forEach((item: { keyword: any; id: string }, index: string | number) => {
                     state.branchList[index].keyword = item.keyword;
                     // editId(
                     //     `node_tags${state.branchList[index].id}`,
@@ -298,28 +297,28 @@ function affirm() {
 }
 // 删除节点
 function detele(id: string) {
-    ElMessageBox.confirm("确定删除所点击的节点吗?", "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
+    ElMessageBox.confirm('确定删除所点击的节点吗?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
     })
         .then(() => {
             if (!state.isPre) {
-                const noPre = id.replace("node_move", "");
-                emit("delNodeFn", noPre);
+                const noPre = id.replace('node_move', '');
+                emit('delNodeFn', noPre);
                 $plumbIns.remove(id);
                 state.EndpointList = [];
-                $tips("success", "删除成功！！！");
+                $tips('success', '删除成功！！！');
                 return;
             }
-            delNode(state.nodeObj.id).then((res: { data: { status: number; msg: any; }; }) => {
+            delNode(state.nodeObj.id).then((res: { data: { status: number; msg: any } }) => {
                 if (res.data.status === 200) {
                     $plumbIns.remove(`node_move${state.nodeObj.id}`);
-                    emit("delNodeFn", state.nodeObj.id);
+                    emit('delNodeFn', state.nodeObj.id);
                     state.EndpointList = [];
-                    $tips("success", "删除成功！！！");
+                    $tips('success', '删除成功！！！');
                 } else {
-                    $tips("error", res.data.msg);
+                    $tips('error', res.data.msg);
                 }
             });
         })
@@ -328,22 +327,22 @@ function detele(id: string) {
 function jsPlumbFn() {
     const id = props.dataObj?.id;
     // 添加顶部端点
-    $plumbIns.draggable(`node_move${id}`, { containment: "parent" });
+    $plumbIns.draggable(`node_move${id}`, { containment: 'parent' });
     nextTick(() => {
-        state.common.paintStyle.radius = 4
+        state.common.paintStyle.radius = 4;
         // 添加底部小端点
-        state.list?.forEach((item: { id: string; }) => {
-            addDot(`node_tags${item.id}`, "Bottom", state.common);
+        state.list?.forEach((item: { id: string }) => {
+            addDot(`node_tags${item.id}`, 'Bottom', state.common);
         });
     }).then(() => {
         //   限制链接数
         state.common.maxConnections = -1;
         state.common.isSource = false;
-        addDot(`node_main${id}`, "Top", state.common);
+        addDot(`node_main${id}`, 'Top', state.common);
         // 建立链接
         if (props.dataObj?.branchList) {
             nextTick(() => {
-                props.dataObj?.branchList.forEach((item: { id: string; nextFlowId: string; }) => {
+                props.dataObj?.branchList.forEach((item: { id: string; nextFlowId: string }) => {
                     if (item.nextFlowId) {
                         $plumbIns.connect({
                             uuids: [`node_tags${item.id}`, `node_main${item.nextFlowId}`],
@@ -352,7 +351,7 @@ function jsPlumbFn() {
                 });
             });
         }
-    })
+    });
 }
 // 给父组件的数据
 function getEndpointInfo() {
@@ -369,11 +368,11 @@ function getEndpointInfo() {
         state.EndpointList.push({ id: `node_main${state.nodeObj.id}` });
         state.branchList.forEach((item: any) => {
             state.EndpointList.push({ id: `node_tags${item.id}` });
-            obj.branchList.push({ id: item.id, name: item.name, nextFlowId: "" });
+            obj.branchList.push({ id: item.id, name: item.name, nextFlowId: '' });
         });
     }
     state.EndpointList.forEach((item: any, index: number) => {
-        const data = $plumbIns.getEndpoints(item.id)[0].connections[0] || "";
+        const data = $plumbIns.getEndpoints(item.id)[0].connections[0] || '';
         const objInfo = {
             sourceId: data.sourceId, // 线的起始html元素的ID
             targetId: data.targetId, // 线的目标html元素的ID
@@ -383,7 +382,7 @@ function getEndpointInfo() {
         item.info = data ? objInfo : data;
         if (state.isPre) {
             // 父节点
-            if (item.id.indexOf("node_tags") !== -1) {
+            if (item.id.indexOf('node_tags') !== -1) {
                 obj.branchList[index - 1].nextFlowId = data ? data.targetId : data;
             } else {
                 obj.sourceId = data ? data.sourceId : data;
@@ -393,13 +392,16 @@ function getEndpointInfo() {
     if (state.isPre) return obj;
 }
 // 监听保存状态
-watch(() => props.isPreserve, (n) => {
-    if (n) {
-        if (state.isPre) return emit("getInfo", getEndpointInfo());
-        getEndpointInfo();
-        emit("getInfo", state.EndpointList);
-    }
-})
+watch(
+    () => props.isPreserve,
+    (n) => {
+        if (n) {
+            if (state.isPre) return emit('getInfo', getEndpointInfo());
+            getEndpointInfo();
+            emit('getInfo', state.EndpointList);
+        }
+    },
+);
 // 上传
 function uploadFile(file: any) {
     // 上传时的配置
@@ -408,21 +410,21 @@ function uploadFile(file: any) {
     };
     //  设置文件的配置
     const putExtra = {
-        fname: "",
+        fname: '',
         params: {},
         mimeType: null,
     };
-    const key = `${props.scenariosInfo?.id}_${new Date().getTime()}`;
+    const key = `${props.scenariosInfo?.id}_${new Date().getTime()}.mp3`;
     //   实例化七牛云的上传实例
     const observable = qiniu.upload(file, key, props.token, putExtra, config);
     //   设置实例的监听对象
     const observer = {
         //   接收上传进度信息
-        next(res: { total: { percent: string; }; }) {
+        next(res: { total: { percent: string } }) {
             // 上传进度
             state.filePercent = parseInt(res.total.percent, 10);
             if (state.filePercent == 100) {
-                $tips("success", "上传录音成功！！！");
+                $tips('success', '上传录音成功！！！');
             }
         },
         // 接收上传错误信息
@@ -430,7 +432,7 @@ function uploadFile(file: any) {
             console.log(err);
         },
         // 接收上传完成后的信息
-        complete(res: { key: string; }) {
+        complete(res: { key: string }) {
             // 拼接路径字符串
             state.videoUrl = `${state.baseurl}/${res.key}`;
             console.log(state.videoUrl);
@@ -450,8 +452,9 @@ function clear() {
 function playRecorder() {
     clear();
     if (!state.recorderStatus && state.eventFlag) {
-        if (state.videoUrl) return (videoPlay.value.play(), $tips("success", "开始播放录音！！！"));
-        if (!state.recorder) return $tips("warning", "没有缓存录音！！！");
+        // eslint-disable-next-line no-sequences
+        if (state.videoUrl) return videoPlay.value.play(), $tips('success', '开始播放录音！！！');
+        if (!state.recorder) return $tips('warning', '没有缓存录音，长按3s开始录制音频！！！');
         state.recorder.play();
         clearInterval(state.countDownTime);
         clearTimeout(state.Loop);
@@ -478,7 +481,7 @@ function countDown() {
             clearInterval(state.countDownTime);
             state.countDownTime = null;
             state.countDownNum = 3;
-            $tips("success", "开始录音！！！");
+            $tips('success', '开始录音！！！');
             state.recorderStatus = true;
             state.recorder.start();
         }
@@ -514,7 +517,7 @@ function dialogFn() {
     }
 }
 function created() {
-    const position = props.dataObj?.position.split(",");
+    const position = props.dataObj?.position.split(',');
     // eslint-disable-next-line prefer-destructuring, vue/no-mutating-props
     props.dataObj.top = position[0];
     // eslint-disable-next-line prefer-destructuring, vue/no-mutating-props
@@ -533,25 +536,25 @@ function created() {
 function handleClose() {
     state.dialogVisible = false;
     state.fromObj = {
-        name: "",
-        content: "",
+        name: '',
+        content: '',
     };
 }
 onUnmounted(() => {
     $plumbIns.reset();
-})
-created()
+});
+created();
 onMounted(() => {
-    $plumbIns.setContainer("diagramContainer");
-    jsPlumbFn()
+    $plumbIns.setContainer('diagramContainer');
+    jsPlumbFn();
     // 当链接建立前
-    $plumbIns.bind("beforeDrop", (info: { targetId: string | string[]; }) => {
-        if (info.targetId.indexOf("node_tags") !== -1) {
+    $plumbIns.bind('beforeDrop', (info: { targetId: string | string[] }) => {
+        if (info.targetId.indexOf('node_tags') !== -1) {
             return false;
         }
         return true;
     });
-})
+});
 const {
     createObj,
     recorderStatus,
@@ -562,12 +565,12 @@ const {
     isPre,
     list,
     branchList,
-    videoUrl
-} = toRefs(state)
-const { dataObj } = toRefs(props)
+    videoUrl,
+} = toRefs(state);
+const { dataObj } = toRefs(props);
 </script>
 
-<style lang='scss' scoped>
+<style lang="scss" scoped>
 .node_move {
     width: 214px;
     margin: 0 15px 15px;

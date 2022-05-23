@@ -1,8 +1,8 @@
 /*
  * @Author: your name
  * @Date: 2022-02-12 15:53:45
- * @LastEditTime: 2022-04-12 10:49:51
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2022-05-17 17:22:55
+ * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \vitecamp\src\router\route.async.ts
  */
@@ -59,15 +59,15 @@ const asyncRoutes: Array<RouteRecordRaw> = [
                 name: "knowledgeBase",
                 component: () => import('@/views/operationMan/knowledgeBase/index.vue'),
             },
-            // {
-            //     path: 'verbalTrickPush',
-            //     meta: {
-            //         title: '话术推送',
-            //         icon: 'swagger',
-            //     },
-            //     name: "verbalTrickPush",
-            //     component: () => import('@/views/operationMan/verbalTrickPush/index.vue'),
-            // }
+            {
+                path: 'verbalTrickPush',
+                meta: {
+                    title: '话术推送',
+                    icon: 'swagger',
+                },
+                name: "verbalTrickPush",
+                component: () => import('@/views/operationMan/verbalTrickPush/index.vue'),
+            }
         ]
 
     },

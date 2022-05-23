@@ -1,8 +1,8 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-25 14:21:47
- * @LastEditTime: 2022-04-30 16:34:17
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2022-05-23 15:31:42
+ * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\mirandaIM\content\inputInfo.vue
 -->
@@ -21,74 +21,109 @@
                 </el-scrollbar>
             </template>
         </el-popover>
-        <span style="position: relative;">
-            <i-icon-park-folder-upload />
-            <input ref="upload"
-                style="width: 100%;height: 100%;position: absolute;top: 0;left: 0;cursor: pointer;opacity: 0;"
-                type="file" @change="fileChange">
+        <span style="position: relative">
+            <i-ic-sharp-drive-folder-upload style="color: rgb(255, 204, 77)" />
+            <input
+                ref="upload"
+                style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; cursor: pointer; opacity: 0"
+                type="file"
+                @change="fileChange"
+            />
         </span>
     </div>
     <!-- <div id="editor" @keyup.ctrl.enter="sendInfo" @paste="pasteIntercept($event)"></div> -->
     <InputBox id="editor" ref="inpuBox" :enter="sendInfo" />
 </template>
 
-<script setup lang='ts'>
+<script setup lang="ts">
 import * as qiniu from 'qiniu-js';
 import { qiNiuToken } from '@/api/qiniu';
-// import WangEditor from "wangeditor"
+import Store from '@/store/message';
 
-const { proxy: { $websocket } } = getCurrentInstance() as any;
-const emit = defineEmits(['get-progress', 'success-upload'])
+const myMessage = Store();
+
+const {
+    proxy: { $websocket, $tips },
+} = getCurrentInstance() as any;
+const emit = defineEmits(['get-progress', 'success-upload', 'success-send']);
 interface getEMOType {
-    key: string,
-    value: string,
-    html: HTMLSpanElement
+    key: string;
+    value: string;
+    html: HTMLSpanElement;
 }
-const inpuBox = ref()
+const inpuBox = ref();
+const upload = ref();
 const state = reactive({
     fileURL: '',
     filePercent: 0, // 上传进度
     token: '',
-    baseurl: "http://pic.hzjiuwang.com",
-    file: {} as File
-})
+    baseurl: 'http://pic.hzjiuwang.com',
+    file: {} as File,
+});
 // 发送给最老辈组件的数据
 // const openDialog = inject('openDialog') as Function
 // 监听上传进度给父组件
-watch(() => state.filePercent, (n) => {
-    // const obj = {
-    //     fileURL: state.fileURL,
-    //     filePercent: state.filePercent,
-    //     file: state.file
-    // }
-    emit('get-progress', n)
-})
+watch(
+    () => state.filePercent,
+    () => {
+        const obj = {
+            fileURL: state.fileURL,
+            filePercent: state.filePercent,
+            file: state.file,
+        };
+        emit('get-progress', obj);
+    },
+);
 // 发送消息
 const sendInfo = () => {
-    // openDialog(true)
     // 得实体化
-    const obj = { status: "", key: "3333", data: '2221454' }
-    $websocket.webSocketSendMsg(obj)
-}
+    const reg = /<p>(.*?)<\/p>|(<img\b.*?(?:>|\/>))/g;
+    console.log(inpuBox.value.getChildNode('html'));
+    console.log(inpuBox.value.getChildNode());
+    console.log((inpuBox.value.getChildNode('html') as string).match(reg));
+    console.log((inpuBox.value.getChildNode('html') as string).replace(/<img\b.*?(?:>|\/>)/g, ''));
+
+    const sendObj = {
+        content: inpuBox.value.getChildNode('html'),
+        clientId: 'from_msgid_3068188889449267266',
+        contentType: 2,
+        conversationId: 'S:1688852050093582_7881303199126960',
+        sendType: '1',
+        msgType: '1',
+        senderNickName: '你猜',
+        senderId: 7881303199126960,
+        serverId: 1018098,
+        sendTimeStamp: new Date().getTime(),
+    };
+    const obj = { status: '', key: '3333', data: { ...sendObj, content: inpuBox.value.getChildNode() } };
+    // 添加到消息体
+    myMessage.addChatList(sendObj).then(() => {
+        // 设置滚动条
+        emit('success-send');
+        inpuBox.value.clearContent();
+        $websocket.webSocketSendMsg(obj);
+    });
+};
 // 接收消息
-$websocket.getWebSocketMsg((msg: any) => {
-    msg.data.arrayBuffer().then((res: number | number[] | null | undefined) => {
-        console.log($websocket.transformResponse("MessageRequest")(res));
-    })
-})
+// $websocket.getWebSocketMsg((msg: any) => {
+//     msg.data.arrayBuffer().then((res: number | number[] | null | undefined) => {
+//         console.log($websocket.transformResponse("MessageRequest")(res));
+//     })
+// })
 // 将表情添加到文本框
 const getEmo = (obj: getEMOType) => {
-    inpuBox.value.insertStr(obj.key)
-}
+    inpuBox.value.insertStr(obj.key);
+};
 // 上传
-function uploadFile(file: File) {
+function uploadFile(file: File, sendFile: any = {}) {
+    state.file = file;
     // 上传时的配置
     const config = {
         useCdnDomain: true,
     };
     //  设置文件的配置
     const putExtra = {
-        fname: "",
+        fname: '',
         params: {},
         mimeType: null,
     };
@@ -98,30 +133,75 @@ function uploadFile(file: File) {
     //   设置实例的监听对象
     const observer = {
         //   接收上传进度信息
-        next(res: { total: { percent: string; }; }) {
+        next(res: { total: { percent: string } }) {
             // 上传进度
             state.filePercent = parseInt(res.total.percent, 10);
+            if (sendFile?.fileId) {
+                myMessage.setUploadInfo(sendFile.fileId, 'filePercent', parseInt(res.total.percent, 10));
+            }
+            // 清空
+            if (state.filePercent == 100) {
+                (upload.value as HTMLInputElement).value = '';
+            }
         },
         // 接收上传错误信息
         error(err: any) {
+            myMessage.setUploadInfo(sendFile.fileId, 'isUpload', false);
             console.log(err);
+            $tips('error', err);
         },
         // 接收上传完成后的信息
-        complete(res: { key: string; }) {
+        complete(res: { key: string }) {
             // 拼接路径字符串
             state.fileURL = `${state.baseurl}/${res.key}`;
-            emit("success-upload", { fileURL: state.fileURL, file })
+            // 发送消息给后端
+            emit('success-upload', { fileURL: state.fileURL, file });
+            myMessage.setUploadInfo(sendFile.fileId, 'isUpload', true);
+            myMessage.setUploadInfo(sendFile.fileId, 'content', state.fileURL);
         },
     };
     // 上传开始
     // const subscription = observable.subscribe(observer);
     observable.subscribe(observer);
 }
+const isVideo = (url: string) => {
+    const last = url.substring(url.lastIndexOf('.'));
+    if (last == '.png' || last == '.jpg' || last == '.jpeg' || last == '.jfif') {
+        return 'img';
+    }
+    if (last == '.mp4' || last == '.mov' || last == '.m4v' || last == '.wmv') {
+        return 'video';
+    }
+};
 // 获取文件
 const fileChange = (e: Event) => {
-    const file = (e.target as HTMLInputElement).files?.item(0) as File
-    uploadFile(file)
-}
+    const file = (e.target as HTMLInputElement).files?.item(0) as File;
+    const sendFile = {
+        clientId: 'from_msgid_3068188889449267266',
+        content: '',
+        contentType: 2,
+        conversationId: 'S:1688852050093582_7881303199126960',
+        fileName: file.name,
+        fileId: file.size + new Date().getTime(),
+        filePercent: 0,
+        fileSize: file.size,
+        msgType: isVideo(file.name) == 'img' ? '2' : isVideo(file.name) == 'video' ? '4' : '3', // 文件类型
+        sendTimeStamp: new Date().getTime(),
+        sendType: '1',
+        senderId: 7881303199126960,
+        senderNickName: '你猜',
+        serverId: 1018098,
+    };
+    const obj = { status: '', key: '3333', data: { ...sendFile } };
+    // 添加到消息体
+    myMessage.addChatList(sendFile).then(() => {
+        // 设置滚动条
+        emit('success-send');
+        inpuBox.value.clearContent();
+        $websocket.webSocketSendMsg(obj);
+    });
+    uploadFile(file, sendFile);
+};
 
 function getQiNiuToken() {
     qiNiuToken().then((res: { data: { data: string } }) => {
@@ -129,13 +209,13 @@ function getQiNiuToken() {
     });
 }
 onMounted(() => {
-    getQiNiuToken()
-})
+    getQiNiuToken();
+});
 
 // const { editor } = toRefs(state)
 </script>
 
-<style lang='scss' scoped>
+<style lang="scss" scoped>
 .tips {
     position: absolute;
     top: -20px;

@@ -2,8 +2,8 @@
 /*
  * @Author: your name
  * @Date: 2022-03-23 09:44:33
- * @LastEditTime: 2022-04-30 09:21:42
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2022-05-09 10:12:13
+ * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\api\http.ts
  */
@@ -12,6 +12,7 @@ import { ElMessage } from 'element-plus';
 import showCodeMessage from '@/api/code';
 import { formatJsonToUrlParams, instanceObject } from '@/utils/format';
 import { getToken, removeToken } from '@/utils/cookies';
+import router from '@/router/index';
 
 const BASE_PREFIX = import.meta.env.VITE_API_BASEURL;
 // console.log(BASE_PREFIX);
@@ -28,6 +29,7 @@ const axiosInstance: AxiosInstance = axios.create({
         'Content-Type': 'application/json',
     },
 });
+
 
 // 请求拦截器
 axiosInstance.interceptors.request.use(
@@ -64,15 +66,12 @@ axiosInstance.interceptors.response.use(
         console.log(response);
 
         if (response) {
-
             if (response.status === 401) {
                 removeToken()
-                useRouter().push('/login')
+                router.push('/login')
             }
-
             ElMessage.error(showCodeMessage(response.status));
             return Promise.reject(response.data);
-
         }
         ElMessage.warning('网络连接异常,请稍后再试!');
         return Promise.reject(error);

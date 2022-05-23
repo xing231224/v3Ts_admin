@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-30 14:17:46
- * @LastEditTime: 2022-05-19 15:14:33
+ * @LastEditTime: 2022-05-12 14:27:37
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\verbalTRStock\index.vue
@@ -9,14 +9,14 @@
 <template>
     <!-- <div class="operationWords" style="--el-color-primary:#F39C12"> -->
     <div class="operationWords">
-        <!-- <div style="padding: 0 20px">
+        <div style="padding: 0 20px">
             <el-button type="warning" :icon="User" @click="dialogFn('selectAdmain')">选择用户</el-button>
             <span v-if="userInfo && userObj.checked" style="margin: 0 20px">用户：{{ userInfo.userName }}</span>
-        </div> -->
-        <div class="flex">
+        </div>
+        <div v-if="userInfo && userObj.checked" class="flex">
             <div class="operation_btn">
                 <div style="text-align: center">
-                    <el-button type="primary" :icon="CirclePlus" @click="dialogFn('add')">添加 </el-button>
+                    <el-button type="primary" :icon="CirclePlus" @click="dialogFn('add')">添加</el-button>
                 </div>
                 <el-card
                     v-for="(o, index) in trickList"
@@ -40,7 +40,7 @@
                     <el-button type="primary" style="margin: 0 20px" :icon="CollectionTag" @click="preserve()"
                         >保存
                     </el-button>
-                    <el-button type="primary" style :icon="CopyDocument" @click="dialogFn('copy')"> 复制话术</el-button>
+                    <el-button type="primary" style :icon="CopyDocument" @click="dialogFn('copy')">复制话术</el-button>
                     <el-button-group class="ml-4">
                         <el-tooltip class="box-item" effect="dark" content="放大" placement="top-start">
                             <el-button type="primary" :icon="ZoomIn" @click="scaleFn('ZoomIn')" />
@@ -90,7 +90,7 @@
             @close="handleClose"
         >
             <!-- 选择用户 -->
-            <!-- <div v-if="dialogType == 'selectAdmain'">
+            <div v-if="dialogType == 'selectAdmain'">
                 <div class="flex">
                     <div style="margin: 0 20px">
                         <el-input v-model="userObj.mobile" placeholder="请输入用户手机号"></el-input>
@@ -105,7 +105,7 @@
                 <p style="text-align: right; padding: 20px 20px 0">
                     <el-button type="primary" @click="searchAffirm">确 定</el-button>
                 </p>
-            </div> -->
+            </div>
             <!-- 添加话术 -->
             <div v-if="dialogType === 'add' || dialogType === 'edit'">
                 <div class="flex">
@@ -136,8 +136,9 @@
 
 <script setup lang="ts">
 import { ElMessageBox, ElLoading } from 'element-plus';
-import { CirclePlus, CopyDocument, Expand, CollectionTag, ZoomIn, ZoomOut } from '@element-plus/icons-vue';
+import { User, CirclePlus, CopyDocument, Expand, CollectionTag, ZoomIn, ZoomOut } from '@element-plus/icons-vue';
 import {
+    getUserByPhone,
     createScenarios,
     sreachScenarios,
     updateScenarios,
@@ -155,7 +156,7 @@ const {
 const route = useRoute();
 const plumb_header = ref();
 const kongtiao = ref();
-// const userCheckox = ref();
+const userCheckox = ref();
 const state = reactive<{ [propName: string]: any }>({
     list: [],
     userObj: {
@@ -479,60 +480,55 @@ function drog() {
         return false; // 标准浏览器的默认行为
     });
 }
-const searchAffirm = () => {
-    const loadingInstance = ElLoading.service({
+function searchAffirm() {
+    if (userCheckox.value) {
+        sreachScenarios({ memberId: state.userInfo.id }).then((res) => {
+            if (res.data.status === 200) {
+                state.trickList = res.data.data;
+                state.userObj.checked = userCheckox.value.model;
+                state.dialogVisible = false;
+                state.scenariosId = state.trickList[0].id;
+                const loading = ElLoading.service({
+                    lock: true,
+                    text: 'Loading',
+                    background: 'rgba(0, 0, 0, 0.7)',
+                    target: '#NodeRelation',
+                });
+                getNodeRelation(state.scenariosId).then((res) => {
+                    if (res.data.status === 200) {
+                        state.list = res.data.data || [];
+                        $tips('success', '获取成功！！！');
+                        nextTick(() => {
+                            drog();
+                            move_view();
+                        });
+                    } else {
+                        $tips('error', res.data.msg);
+                    }
+                    loading.close();
+                });
+            } else {
+                $tips('error', res.data.msg);
+            }
+        });
+    }
+}
+function searchUser() {
+    const loading = ElLoading.service({
         lock: true,
         text: 'Loading',
-        background: 'rgba(122, 122, 122, 0.8)',
-        target: document.querySelector('.operationWords') as HTMLElement,
+        background: 'rgba(0, 0, 0, 0.7)',
+        target: '.el-dialog',
     });
-    sreachScenarios({}).then((res) => {
+    getUserByPhone(state.userObj.mobile).then((res) => {
         if (res.data.status === 200) {
-            state.trickList = res.data.data;
-            // state.userObj.checked = userCheckox.value.model;
-            state.dialogVisible = false;
-            state.scenariosId = state.trickList[0].id;
-            const loading = ElLoading.service({
-                lock: true,
-                text: 'Loading',
-                background: 'rgba(0, 0, 0, 0.7)',
-                target: '#NodeRelation',
-            });
-            getNodeRelation(state.scenariosId).then((res) => {
-                if (res.data.status === 200) {
-                    state.list = res.data.data || [];
-                    $tips('success', '获取成功！！！');
-                    nextTick(() => {
-                        drog();
-                        move_view();
-                    });
-                } else {
-                    $tips('error', res.data.msg);
-                }
-                loading.close();
-            });
+            state.userInfo = res.data.data;
         } else {
             $tips('error', res.data.msg);
         }
-        loadingInstance.close();
+        loading.close();
     });
-};
-// function searchUser() {
-//     const loading = ElLoading.service({
-//         lock: true,
-//         text: 'Loading',
-//         background: 'rgba(0, 0, 0, 0.7)',
-//         target: '.el-dialog',
-//     });
-//     getUserByPhone(state.userObj.mobile).then((res) => {
-//         if (res.data.status === 200) {
-//             state.userInfo = res.data.data;
-//         } else {
-//             $tips('error', res.data.msg);
-//         }
-//         loading.close();
-//     });
-// }
+}
 // 查询话术
 function searchScenar() {
     sreachScenarios({ memberId: state.userInfo.id }).then((res) => {
@@ -759,7 +755,6 @@ watch(
 
 onMounted(() => {
     getQiNiuToken();
-    searchAffirm();
     window.onmouseup = windowMouseup;
     $plumbIns.ready(() => {
         $plumbIns.setSuspendDrawing(false, true);
@@ -775,6 +770,8 @@ const {
     newTrickName,
     dialogType,
     trickName,
+    userInfo,
+    userObj,
     dialogTitle,
     isPreserve,
     cardIndex,

@@ -146,6 +146,8 @@ const handlePictureCardPreview = (file: any) => {
 
 onMounted(() => {
     state.postData.token = props.token;
+    console.log(state.postData.token);
+
     if (props.list) {
         const list = JSON.parse(props.list)
         list.forEach((item: any) => {

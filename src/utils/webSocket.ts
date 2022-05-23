@@ -126,7 +126,7 @@ class WebSocketClass {
         // eslint-disable-next-line no-param-reassign
         // msg.data = typeof msg.data == 'string' ? msg.data : JSON.stringify(msg.data) // data转JSON
         // eslint-disable-next-line no-param-reassign
-        msg.data = typeof msg.data == 'string' ? msg.data : this.byteArray(JSON.stringify(msg.data)) // 字符串转byte
+        msg.data = this.byteArray(JSON.stringify(msg.data)) // 字符串转byte
         this.ws.send(this.transformRequest(protoClass)(msg))  // 转化二进制发送消息
         this.lockRetry = false
         // if (msg.status == '0') {

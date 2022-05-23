@@ -1,8 +1,8 @@
 /*
  * @Author: your name
  * @Date: 2022-03-30 15:10:44
- * @LastEditTime: 2022-04-01 14:45:47
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2022-05-23 15:50:39
+ * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\utils\emjoymethod.ts
  */
@@ -64,7 +64,7 @@ const _convertStringToUnicodeCodePoints = (str: string) => {
 }
 
 // 解析emoji表情 以及换行回车
-const parsingEmoji = (value: any, className = false) => {
+export const parsingEmoji = (value: any, className = false) => {
     if (!value) return '';
     let str = value;
     str = str.replace(/\n/gi, '<br>');
@@ -77,10 +77,10 @@ const parsingEmoji = (value: any, className = false) => {
         var s = s.split("[")[1].split(']')[0];
         if (emojiString.indexOf(s) != -1) {
             if (className) return `${emojisBmap[`[${s}]`]}`
-            return `<span class="chat-emoji emoji_b ${emojisBmap[`[${s}]`]}" data-name="${s}"></span>`;
+            return `<div class='juz'><span class="chat-emoji emoji_b ${emojisBmap[`[${s}]`]}" data-name="${s}"></span></div>`;
         } if (emojisAmap[s]) {
             if (className) return `emoji_a ${emojisAmap[s]}`
-            return `<span class="chat-emoji emoji_a ${emojisAmap[s]}" data-name="${s}"></span>`;
+            return `<div class='juz'><span class="chat-emoji emoji_a ${emojisAmap[s]}" data-name="${s}"></span></div>`;
         }
         return `[${s}]`;
         ;
@@ -88,14 +88,30 @@ const parsingEmoji = (value: any, className = false) => {
     str = str.replace(emojiReg, (emo: any) => {
         const emos = emo.replace(/\\/g, '\\');
         if (className) return `${emojisBmap[emos]}`
-        return `<span class="chat-emoji emoji_b ${emojisBmap[emos]}" data-name="${emos}"></span>`;
+        return `<div class='juz'><span class="chat-emoji emoji_b ${emojisBmap[emos]}" data-name="${emos}"></span></div>`;
     });
     // 微信emoji=》unicode表情规则
     str = str.replace(wChartReg, (wCeo: any) => {
         if (className) return `${wChatEmojis[_escapeToUtf32(wCeo).toLocaleUpperCase()]}`
         // eslint-disable-next-line no-use-before-define
-        return `<span class="chat-emoji emoji_b ${wChatEmojis[_escapeToUtf32(wCeo).toLocaleUpperCase()]}" data-name="${wChatToUi[_escapeToUtf32(wCeo).toLocaleUpperCase()]}"></span>`;
+        return `<div class='juz'><span class="chat-emoji emoji_b ${wChatEmojis[_escapeToUtf32(wCeo).toLocaleUpperCase()]}" data-name="${wChatToUi[_escapeToUtf32(wCeo).toLocaleUpperCase()]}"></span></div>`;
     });
+
+    // 解析url
+    // 写的url正则匹配
+    // eslint-disable-next-line no-useless-escape
+    const regURL = /((http|ftp|https):\/\/)?[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?/g;
+    // 正则替换
+    str = str.replace(regURL, (a: string | string[]) => {
+        // 如果包含http ，indexOf方法如果包含返回0,所以加上!
+        if (!a.indexOf('http')) {
+            return `<a href="${a}" style='text-decoration: underline' target=_blank>${a}</a>`;
+        }
+        return `<a href="http://${a}" style='text-decoration: underline' target=_blank>${a}</a>`;
+    });
+
+
+
     return str;
 };
 

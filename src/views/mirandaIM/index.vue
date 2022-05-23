@@ -1,8 +1,8 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-21 14:09:09
- * @LastEditTime: 2022-04-28 15:17:31
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2022-05-10 16:26:52
+ * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3-ts_demo\src\views\mirandaIM\index.vue
 -->
@@ -45,7 +45,7 @@
             </div>
         </el-header>
         <el-container>
-            <el-aside width="260px">
+            <el-aside :width="myMessage.activeAccountInfo.id ? '380px' : '130px'" class="aside">
                 <FriendList />
             </el-aside>
             <el-main class="main">
@@ -60,12 +60,17 @@
         </el-container>
     </el-container>
     <WeCahtLogin v-if="myMessage.isLogin" v-model="myMessage.isLogin" />
-    <el-dialog v-model="dialogVisible" title="Tips" width="30%" @close="handleClose">
-        <img :src="imgSrc" />
+    <el-dialog v-if="dialogVisible" v-model="dialogVisible" :title="isVideo(fileUrl) ? '查看视频' : '查看图片'" width="30%"
+        @close="handleClose">
+        <div v-if="isVideo(fileUrl)">
+            <video id="upvideo" :src="fileUrl" style="width: 100%; height: 100%" controls>您的浏览器不支持视频播放</video>
+        </div>
+        <img v-else :src="fileUrl" />
         <template #footer>
             <span class="dialog-footer">
-                <el-button @click="dialogVisible = false">Cancel</el-button>
-                <el-button type="primary" @click="dialogVisible = false">Confirm</el-button>
+                <el-button @click="dialogVisible = false">关闭</el-button>
+                <el-button type="primary" @click="downFile(fileUrl, isVideo(fileUrl) ? '视频.mp4' : '图片.png')">下载
+                </el-button>
             </span>
         </template>
     </el-dialog>
@@ -78,7 +83,7 @@ import VerbalTrickVue from './verbalTR/index.vue'
 import WeCahtLogin from "./weChatLogin/index.vue"
 import Store from "@/store/message"
 import userStore from "@/store/user"
-
+import { downFile } from "@/utils/mineUtils"
 
 const { proxy: { $websocket } } = getCurrentInstance() as any;
 const myMessage = Store()
@@ -87,46 +92,95 @@ const state = reactive({
     value: false,
     dialogVisible: false,
     isHidden: false,
-    dataList: [[], [], []],
-    isContentMess: false
+    dataList: [] as any[],
+    isContentMess: false,
+    contacts: [] as any[]
 })
-const imgSrc = ref('')
+const fileUrl = ref('')
 const handleClose = () => {
     console.log(1111);
 }
-const openDialog = (bool: boolean) => {
+const isVideo = computed(() => {
+    return (url: any) => {
+        const last = url.substring(url.lastIndexOf("."));
+        if (
+            last == ".png" ||
+            last == ".jpg" ||
+            last == ".jpeg" ||
+            last == ".jfif"
+        ) {
+            return false;
+        } if (
+            last == ".mp4" ||
+            last == ".mov" ||
+            last == ".m4v" ||
+            last == ".wmv"
+        ) {
+            return true;
+        }
+    };
+})
+const openDialog = (bool: boolean, url: string) => {
     state.dialogVisible = bool
+    fileUrl.value = url
+}
+// 时间排序
+const sortTime = (arr: any[]): any[] => {
+    return arr.sort((a, b) => b.offLineMsg.sendTimeStamp - a.offLineMsg.sendTimeStamp)
 }
 $websocket.webSocketSendMsg({ key: '', status: '10', data: { userId: `${myuserStore.userId}` } })
-$websocket.webSocketSendMsg({ key: '', status: '7', data: { userId: `${myuserStore.userId}` } })
-$websocket.webSocketSendMsg({ key: '', status: '8', data: { userId: `${myuserStore.userId}` } })
-$websocket.webSocketSendMsg({ key: '', status: '9', data: { userId: `${myuserStore.userId}` } })
 $websocket.getWebSocketMsg((obj: any) => {
     switch (obj.status) {
+        // 内部联系人
         case '7':
-            state.dataList[0] = obj.data
+            state.contacts[0] = {
+                title: '内部联系人',
+                children: obj.data
+            }
             break;
+        // 外部联系人
         case '8':
-            state.dataList[1] = obj.data
+            state.contacts[1] = {
+                title: '外部联系人',
+                children: obj.data
+            }
             break;
+        // 群聊
         case '9':
-            state.dataList[2] = obj.data
+            state.contacts[2] = {
+                title: '群聊',
+                children: obj.data
+            }
             break;
+        // 子账号
         case '10':
             myMessage.accounts = obj.data
+            break;
+        // 聊天列表
+        case '11':
+            state.dataList[0] = sortTime(obj.data)
+            break;
+        // 当前窗口聊天记录
+        case '6':
+            // 添加聊天记录进列表
+            myMessage.setChatList(obj.data)
             break;
         default:
             break;
     }
 })
 // 传递参数给子孙组件
-console.log(state.dataList);
 provide("dataList", state.dataList)
+
 provide("openDialog", openDialog)
 
 watchEffect(() => {
     state.isContentMess = computed(() => myMessage.$state.isContext).value
     state.isHidden = computed(() => myMessage.getHiddenAside).value
+    if (state.contacts.length == 3) {
+        state.dataList[1] = state.contacts
+    }
+
 })
 
 
@@ -152,7 +206,8 @@ const { value, dialogVisible, isHidden, isContentMess } = toRefs(state)
     }
 
     .aside {
-        transition: width 0.5s;
+        overflow: hidden;
+        transition: width 0.6s;
     }
 }
 
