@@ -32,7 +32,7 @@
     flex-direction: column;
 }
 
-* {
+div {
     -webkit-user-select: none;
     -moz-user-select: none;
     user-select: none;
@@ -40,4 +40,8 @@
 }
 .el-icon {
     position: inherit;
+}
+.accounts_tip {
+    min-width: auto !important;
+    width: auto !important;
 }

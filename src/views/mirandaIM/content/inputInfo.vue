@@ -1,11 +1,3 @@
-<!--
- * @Author: your name
- * @Date: 2022-03-25 14:21:47
- * @LastEditTime: 2022-05-23 15:31:42
- * @LastEditors: xing 1981193009@qq.com
- * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- * @FilePath: \v3ts_admin\src\views\mirandaIM\content\inputInfo.vue
--->
 <template>
     <span class="tips">使用Enter发送消息，Ctrl+Enter回车换行</span>
     <div class="input_utils">
@@ -32,18 +24,20 @@
         </span>
     </div>
     <!-- <div id="editor" @keyup.ctrl.enter="sendInfo" @paste="pasteIntercept($event)"></div> -->
-    <InputBox id="editor" ref="inpuBox" :enter="sendInfo" />
+    <InputBox id="editor" ref="inpuBox" :enter="sendInfo" @input="inputBoxFn" />
 </template>
 
 <script setup lang="ts">
 import * as qiniu from 'qiniu-js';
 import { qiNiuToken } from '@/api/qiniu';
 import Store from '@/store/message';
+import WebSocketClass from '@/utils/webSocket';
+import { randomKey, isVideo } from '@/utils/mineUtils';
 
 const myMessage = Store();
-
+const $websocket = inject('websocket') as WebSocketClass;
 const {
-    proxy: { $websocket, $tips },
+    proxy: { $tips },
 } = getCurrentInstance() as any;
 const emit = defineEmits(['get-progress', 'success-upload', 'success-send']);
 interface getEMOType {
@@ -74,46 +68,40 @@ watch(
         emit('get-progress', obj);
     },
 );
-// 发送消息
-const sendInfo = () => {
-    // 得实体化
-    const reg = /<p>(.*?)<\/p>|(<img\b.*?(?:>|\/>))/g;
-    console.log(inpuBox.value.getChildNode('html'));
-    console.log(inpuBox.value.getChildNode());
-    console.log((inpuBox.value.getChildNode('html') as string).match(reg));
-    console.log((inpuBox.value.getChildNode('html') as string).replace(/<img\b.*?(?:>|\/>)/g, ''));
 
+const inputBoxFn = (e: InputEvent) => {
+    if (e.data == '@') {
+        // 群聊@成员
+        // 获取光标位置
+        console.log(window.getSelection());
+        console.log(document.createRange());
+    }
+};
+// 文本消息
+const sendText = (text: string | null | undefined = '') => {
     const sendObj = {
-        content: inpuBox.value.getChildNode('html'),
-        clientId: 'from_msgid_3068188889449267266',
-        contentType: 2,
-        conversationId: 'S:1688852050093582_7881303199126960',
+        content: text || inpuBox.value.getChildNode('html'),
+        conversationId: myMessage.userData.conversationId,
         sendType: '1',
-        msgType: '1',
-        senderNickName: '你猜',
-        senderId: 7881303199126960,
-        serverId: 1018098,
-        sendTimeStamp: new Date().getTime(),
+        msgType: '401',
+        msgId: randomKey(),
+        ack: '0', // 表示发送状态
+        sendTimeStamp: Math.floor(new Date().getTime() / 1000),
     };
-    const obj = { status: '', key: '3333', data: { ...sendObj, content: inpuBox.value.getChildNode() } };
+    const obj = { status: '401', data: { ...sendObj, content: text || inpuBox.value.getChildNode() } };
     // 添加到消息体
     myMessage.addChatList(sendObj).then(() => {
         // 设置滚动条
-        emit('success-send');
         inpuBox.value.clearContent();
         $websocket.webSocketSendMsg(obj);
+        emit('success-send');
     });
 };
-// 接收消息
-// $websocket.getWebSocketMsg((msg: any) => {
-//     msg.data.arrayBuffer().then((res: number | number[] | null | undefined) => {
-//         console.log($websocket.transformResponse("MessageRequest")(res));
-//     })
-// })
 // 将表情添加到文本框
 const getEmo = (obj: getEMOType) => {
     inpuBox.value.insertStr(obj.key);
 };
+
 // 上传
 function uploadFile(file: File, sendFile: any = {}) {
     state.file = file;
@@ -154,53 +142,116 @@ function uploadFile(file: File, sendFile: any = {}) {
         complete(res: { key: string }) {
             // 拼接路径字符串
             state.fileURL = `${state.baseurl}/${res.key}`;
+            // 处理文件发送字段
+            /* eslint-disable no-param-reassign */
+            switch (sendFile.msgType) {
+                // 图片
+                case '402':
+                    sendFile.imageUrl = `${state.baseurl}/${res.key}`;
+                    break;
+                // 视频
+                case '403':
+                    sendFile.mp4Url = `${state.baseurl}/${res.key}`;
+                    break;
+                // 文件
+                default:
+                    sendFile.fileUrl = `${state.baseurl}/${res.key}`;
+                    break;
+            }
             // 发送消息给后端
             emit('success-upload', { fileURL: state.fileURL, file });
             myMessage.setUploadInfo(sendFile.fileId, 'isUpload', true);
             myMessage.setUploadInfo(sendFile.fileId, 'content', state.fileURL);
+            // 发送到后端
+            const obj = {
+                status: isVideo(file.name) == 'img' ? '402' : isVideo(file.name) == 'video' ? '403' : '405',
+                data: { ...sendFile },
+            };
+            $websocket.webSocketSendMsg(obj);
         },
     };
     // 上传开始
     // const subscription = observable.subscribe(observer);
     observable.subscribe(observer);
 }
-const isVideo = (url: string) => {
-    const last = url.substring(url.lastIndexOf('.'));
-    if (last == '.png' || last == '.jpg' || last == '.jpeg' || last == '.jfif') {
-        return 'img';
+// 将base64转换为file
+class BaseFile {
+    constructor(dataurl: string) {
+        // eslint-disable-next-line no-undef, no-constructor-return
+        return this.blobToFile(this.dataURLtoBlob(dataurl), `${new Date().getTime()}.png`);
     }
-    if (last == '.mp4' || last == '.mov' || last == '.m4v' || last == '.wmv') {
-        return 'video';
+
+    // eslint-disable-next-line class-methods-use-this
+    dataURLtoBlob(dataurl: any) {
+        const arr = dataurl.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        // eslint-disable-next-line no-plusplus
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new Blob([u8arr], { type: mime });
     }
-};
+
+    // 将blob转换为file
+    // eslint-disable-next-line class-methods-use-this
+    blobToFile(theBlob: any, fileName: any) {
+        // eslint-disable-next-line no-param-reassign
+        theBlob.lastModifiedDate = new Date();
+        // eslint-disable-next-line no-param-reassign
+        theBlob.name = fileName;
+        return theBlob;
+    }
+}
 // 获取文件
-const fileChange = (e: Event) => {
-    const file = (e.target as HTMLInputElement).files?.item(0) as File;
+const fileChange = (e: any) => {
+    const file = e.name ? e : ((e.target as HTMLInputElement).files?.item(0) as File);
+    // 前端需要的数据
     const sendFile = {
-        clientId: 'from_msgid_3068188889449267266',
-        content: '',
-        contentType: 2,
-        conversationId: 'S:1688852050093582_7881303199126960',
-        fileName: file.name,
+        conversationId: myMessage.userData.conversationId,
+        fileName: file.name, // 文件名
         fileId: file.size + new Date().getTime(),
-        filePercent: 0,
-        fileSize: file.size,
-        msgType: isVideo(file.name) == 'img' ? '2' : isVideo(file.name) == 'video' ? '4' : '3', // 文件类型
-        sendTimeStamp: new Date().getTime(),
+        filePercent: 0, // 上传进度
+        fileSize: file.size, // 文件大小
+        msgType: isVideo(file.name) == 'img' ? '402' : isVideo(file.name) == 'video' ? '403' : '405', // 文件类型
+        sendTimeStamp: Math.floor(new Date().getTime() / 1000), // 发送时间
         sendType: '1',
-        senderId: 7881303199126960,
-        senderNickName: '你猜',
-        serverId: 1018098,
+        msgId: randomKey(),
+        ack: '0', // 表示发送状态
     };
-    const obj = { status: '', key: '3333', data: { ...sendFile } };
     // 添加到消息体
     myMessage.addChatList(sendFile).then(() => {
         // 设置滚动条
         emit('success-send');
-        inpuBox.value.clearContent();
-        $websocket.webSocketSendMsg(obj);
     });
     uploadFile(file, sendFile);
+};
+// 发送消息
+const sendInfo = () => {
+    // 处理截图加文本消息
+    const { childNodes } = inpuBox.value.html as HTMLElement;
+    // 含图片元素的  图文分开发送
+    if ((inpuBox.value.getChildNode('html') as string).indexOf('img') !== -1) {
+        childNodes.forEach((item) => {
+            if (item.nodeName == 'IMG') {
+                // eslint-disable-next-line no-new
+                fileChange(new BaseFile((item as HTMLImageElement).src));
+            } else {
+                if ((item as HTMLElement).innerHTML == '&nbsp;') return;
+                sendText(item.textContent);
+            }
+        });
+    } else {
+        if (
+            (childNodes.length == 1 && (childNodes.item(0) as HTMLElement).innerHTML == '&nbsp;') ||
+            childNodes.length == 0
+        )
+            return $tips('warning', '不能发送空消息！！！');
+        // 发送文本消息
+        sendText();
+    }
 };
 
 function getQiNiuToken() {
@@ -211,8 +262,6 @@ function getQiNiuToken() {
 onMounted(() => {
     getQiNiuToken();
 });
-
-// const { editor } = toRefs(state)
 </script>
 
 <style lang="scss" scoped>

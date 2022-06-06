@@ -1,21 +1,21 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-21 14:09:09
- * @LastEditTime: 2022-05-10 16:26:52
+ * @LastEditTime: 2022-06-02 16:49:29
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3-ts_demo\src\views\mirandaIM\index.vue
 -->
 <template>
-    <el-container v-if="myMessage.accounts.length > 0">
-        <el-header height="auto" style="font-size: 14px;border-bottom: 1px solid #e5e7eb;">
-            <div class="flex" style="padding: 5px 0;">
+    <el-container>
+        <el-header height="auto" style="font-size: 14px; border-bottom: 1px solid #e5e7eb">
+            <div class="flex" style="padding: 5px 0">
                 <span class="juz">在线状态</span>
                 <span class="juz mr-5">
                     <i-ph-question-thin />
                 </span>
                 <el-switch v-model="value" size="large" />
-                <div class="juz" style="margin: 0 10px;">
+                <div class="juz" style="margin: 0 10px">
                     <el-divider direction="vertical" />
                 </div>
                 <span class="juz">最大接待人数</span>
@@ -26,7 +26,7 @@
                 <span class="juz">
                     <i-system-uicons-write />
                 </span>
-                <div class="juz" style="margin: 0 10px;">
+                <div class="juz" style="margin: 0 10px">
                     <el-divider direction="vertical" />
                 </div>
                 <span class="juz">优先旧消息</span>
@@ -34,7 +34,7 @@
                     <i-ph-question-thin />
                 </span>
                 <el-switch v-model="value" size="large" />
-                <div class="juz" style="margin: 0 10px;">
+                <div class="juz" style="margin: 0 10px">
                     <el-divider direction="vertical" />
                 </div>
                 <span class="juz">开启新消息通知</span>
@@ -49,7 +49,7 @@
                 <FriendList />
             </el-aside>
             <el-main class="main">
-                <Content v-if="isContentMess" />
+                <Content v-if="isContentMess" ref="chatContent" />
                 <div v-else class="svg_message juz">
                     <svg-icon name="messagechahua" />
                 </div>
@@ -59,136 +59,211 @@
             </el-aside>
         </el-container>
     </el-container>
-    <WeCahtLogin v-if="myMessage.isLogin" v-model="myMessage.isLogin" />
-    <el-dialog v-if="dialogVisible" v-model="dialogVisible" :title="isVideo(fileUrl) ? '查看视频' : '查看图片'" width="30%"
-        @close="handleClose">
+    <WeCahtLogin v-if="myMessage.isLogin" v-model="myMessage.isLogin" :src="imgBase64" @handle-close="handleClose" />
+    <el-dialog
+        v-if="dialogVisible"
+        v-model="dialogVisible"
+        :title="isVideo(fileUrl) ? '查看视频' : '查看图片'"
+        width="30%"
+        @close="handleClose"
+    >
         <div v-if="isVideo(fileUrl)">
-            <video id="upvideo" :src="fileUrl" style="width: 100%; height: 100%" controls>您的浏览器不支持视频播放</video>
+            <video id="upvideo" :src="fileUrl" style="width: 100%; height: 100%" controls>
+                您的浏览器不支持视频播放
+            </video>
         </div>
         <img v-else :src="fileUrl" />
         <template #footer>
             <span class="dialog-footer">
                 <el-button @click="dialogVisible = false">关闭</el-button>
-                <el-button type="primary" @click="downFile(fileUrl, isVideo(fileUrl) ? '视频.mp4' : '图片.png')">下载
+                <el-button type="primary" @click="downFile(fileUrl, isVideo(fileUrl) ? '视频.mp4' : '图片.png')"
+                    >下载
                 </el-button>
             </span>
         </template>
     </el-dialog>
 </template>
 
-<script setup lang='ts'>
-import FriendList from "./friendList/index.vue"
-import Content from './content/index.vue'
-import VerbalTrickVue from './verbalTR/index.vue'
-import WeCahtLogin from "./weChatLogin/index.vue"
-import Store from "@/store/message"
-import userStore from "@/store/user"
-import { downFile } from "@/utils/mineUtils"
+<script setup lang="ts">
+import FriendList from './friendList/index.vue';
+import Content from './content/index.vue';
+import VerbalTrickVue from './verbalTR/index.vue';
+import WeCahtLogin from './weChatLogin/index.vue';
+import Store from '@/store/message';
+import { downFile } from '@/utils/mineUtils';
+import WebSocketClass from '@/utils/webSocket';
 
-const { proxy: { $websocket } } = getCurrentInstance() as any;
-const myMessage = Store()
-const myuserStore = userStore()
+const {
+    proxy: { $tips },
+} = getCurrentInstance() as any;
+const $websocket = new WebSocketClass('192.168.3.241:18888');
+const myMessage = Store();
 const state = reactive({
     value: false,
     dialogVisible: false,
     isHidden: false,
-    dataList: [] as any[],
+    dataList: [[], []] as [any[], any[]],
     isContentMess: false,
-    contacts: [] as any[]
-})
-const fileUrl = ref('')
+    contacts: [] as any[],
+    imgBase64: '',
+    isChatList: false,
+    isContacts: false,
+    loading: null as unknown as { close: Function },
+});
+const fileUrl = ref('');
 const handleClose = () => {
-    console.log(1111);
-}
+    state.imgBase64 = '';
+};
+
+const chatContent = ref();
+// 判断url后缀名是否是视频格式的
 const isVideo = computed(() => {
     return (url: any) => {
-        const last = url.substring(url.lastIndexOf("."));
-        if (
-            last == ".png" ||
-            last == ".jpg" ||
-            last == ".jpeg" ||
-            last == ".jfif"
-        ) {
+        const last = url.substring(url.lastIndexOf('.'));
+        if (last == '.png' || last == '.jpg' || last == '.jpeg' || last == '.jfif') {
             return false;
-        } if (
-            last == ".mp4" ||
-            last == ".mov" ||
-            last == ".m4v" ||
-            last == ".wmv"
-        ) {
+        }
+        if (last == '.mp4' || last == '.mov' || last == '.m4v' || last == '.wmv') {
             return true;
         }
     };
-})
+});
 const openDialog = (bool: boolean, url: string) => {
-    state.dialogVisible = bool
-    fileUrl.value = url
-}
+    state.dialogVisible = bool;
+    fileUrl.value = url;
+};
 // 时间排序
 const sortTime = (arr: any[]): any[] => {
-    return arr.sort((a, b) => b.offLineMsg.sendTimeStamp - a.offLineMsg.sendTimeStamp)
-}
-$websocket.webSocketSendMsg({ key: '', status: '10', data: { userId: `${myuserStore.userId}` } })
+    return arr.sort((a, b) => b.offLineMsg.sendTimeStamp - a.offLineMsg.sendTimeStamp);
+};
+// 子账号第一次执行 获取好友列表
+watch(
+    () => state.contacts,
+    (n) => {
+        if (n.length == 3) {
+            state.isContacts = true;
+        }
+    },
+    { deep: true },
+);
+watch([() => state.isChatList, () => state.isContacts], (n) => {
+    if (n.every((item) => item)) {
+        state.loading.close();
+        myMessage.setContactList(state.dataList as [[], []]);
+    }
+});
+const loading = (loading: { close: () => void }) => {
+    // 状态层清空数据
+    myMessage.clearData();
+    myMessage.setContactList([[], []]);
+    state.contacts = [];
+    state.dataList = [[], []];
+    state.isContacts = false;
+    state.isChatList = false;
+    state.loading = loading;
+};
+
+// 传递 数据到所有子类组件
+provide('openDialog', openDialog);
+provide('websocket', $websocket);
+// 接收组件的loading 方法
+provide('loading', loading);
+
+// 接收所有后端返回的消息
 $websocket.getWebSocketMsg((obj: any) => {
+    console.log(obj.data);
+    // 接收消息
+    if (obj.status.length == 3 && obj.status[0] == '4') {
+        myMessage.receiveChat(obj.data, obj.weChatId, () => {
+            setTimeout(() => {
+                chatContent.value.setScrollHeight();
+            }, 500);
+        });
+        return;
+    }
+    // 退出登录
+    if (obj.status == '5') {
+        myMessage.loginOut(obj.weChatId);
+        $tips('success', `${obj.msg}!!!`);
+        return;
+    }
+    if (obj.weChatId && obj.weChatId != myMessage.activeAccountInfo.id) return;
     switch (obj.status) {
-        // 内部联系人
-        case '7':
-            state.contacts[0] = {
-                title: '内部联系人',
-                children: obj.data
-            }
-            break;
-        // 外部联系人
-        case '8':
-            state.contacts[1] = {
-                title: '外部联系人',
-                children: obj.data
-            }
-            break;
-        // 群聊
-        case '9':
-            state.contacts[2] = {
-                title: '群聊',
-                children: obj.data
-            }
-            break;
-        // 子账号
-        case '10':
-            myMessage.accounts = obj.data
-            break;
-        // 聊天列表
-        case '11':
-            state.dataList[0] = sortTime(obj.data)
+        // 消息发送成功
+        case '4':
+            myMessage.editMsg(obj.data);
+            // 添加消息 滚动条位置
+            setTimeout(() => {
+                chatContent.value.setScrollHeight();
+            }, 500);
             break;
         // 当前窗口聊天记录
         case '6':
             // 添加聊天记录进列表
-            myMessage.setChatList(obj.data)
+            if (obj.data.length == 0) {
+                $tips('warning', '暂无更多消息！！！');
+                // 通知子组件不再发送消息
+                chatContent.value.chatStatus(false);
+                return;
+            }
+            myMessage.setChatList(obj.data);
+            setTimeout(() => {
+                chatContent.value.setScrollHeight();
+            }, 500);
+            break;
+        //  外部联系人
+        case '7':
+            state.contacts[1] = { title: '外部联系人', children: obj.data };
+            break;
+        // 内部联系人
+        case '8':
+            state.contacts[0] = { title: '内部联系人', children: obj.data };
+            break;
+        // 群聊
+        case '9':
+            state.contacts[2] = { title: '群聊', children: obj.data };
+            break;
+        // 子账号
+        case '10':
+            myMessage.addAccounts(obj.data);
+            break;
+        // 聊天列表
+        case '11':
+            state.dataList[0] = sortTime(obj.data);
+            state.isChatList = true;
+            break;
+        // 获取base64二维码
+        case '101':
+            // eslint-disable-next-line no-return-assign
+            if (obj.state == 100) return (myMessage.isLogin = false);
+            state.imgBase64 = `data:image/png;base64,${obj.data.qrCode}`;
+            break;
+        // 扫码登录结果
+        case '102':
+            $websocket.webSocketSendMsg({ status: '10' });
+            myMessage.isLogin = false;
+            $tips('success', obj.msg);
             break;
         default:
             break;
     }
-})
-// 传递参数给子孙组件
-provide("dataList", state.dataList)
-
-provide("openDialog", openDialog)
+});
 
 watchEffect(() => {
-    state.isContentMess = computed(() => myMessage.$state.isContext).value
-    state.isHidden = computed(() => myMessage.getHiddenAside).value
-    if (state.contacts.length == 3) {
-        state.dataList[1] = state.contacts
-    }
-
-})
-
-
-const { value, dialogVisible, isHidden, isContentMess } = toRefs(state)
-
+    state.isContentMess = computed(() => myMessage.$state.isContext).value;
+    state.isHidden = computed(() => myMessage.getHiddenAside).value;
+    state.dataList[1] = state.contacts;
+});
+onMounted(() => {
+    setTimeout(() => {
+        // 发送请求接收子账号的数据
+        $websocket.webSocketSendMsg({ status: '10' });
+    }, 800);
+});
+const { value, dialogVisible, isHidden, isContentMess, imgBase64 } = toRefs(state);
 </script>
 
-<style lang='scss' scoped>
+<style lang="scss" scoped>
 .main {
     padding: 0;
     border: 1px solid #e5e7eb;

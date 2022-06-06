@@ -1,30 +1,34 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-bitwise */
 
-import protobuf from "protobufjs"
-import protoRoot from '@/proto/proto'
+
+import { ElNotification } from 'element-plus'
+import $protobuf from '@/proto/proto'
 import { randomKey } from "@/utils/mineUtils"
 import userStore from "@/store/user"
-
+import message from "@/store/message"
 import { getUserId } from "@/api/modules/login"
 
+const { protobuf, protoRoot } = $protobuf
+
+
 interface msgType {
-    key: string,
+    key?: string,
     status: string,
-    data: any
+    weChatId?: string | number,
+    data?: any
 }
 
 function initData(db: Function) {
     const obj = {
         key: randomKey(),
         status: '0',
-        clientId: '111110',
-        weChatId: '2544848',
         data: {}
     }
     getUserId().then(res => {
         userStore().setUserId(res.data.data)
-        obj.data = { userId: `${res.data.data}`, msg: "喜羊羊@#￥%&*（（））" }
+        obj.data = { userId: `${res.data.data}` }
         // eslint-disable-next-line no-unused-expressions
         db && db(obj)
     })
@@ -75,15 +79,22 @@ class WebSocketClass {
     initEventHandle() {
         // 连接成功建立后响应
         this.ws.onopen = () => {
-            console.log("连接成功");
+            ElNotification({
+                message: "WebSocket链接成功!!!",
+                type: 'success',
+            })
             // this.ws.send(`我是客户端,第${this.count}次连接`);
             initData((obj: any) => {
+                if (!obj) return;
                 this.webSocketSendMsg(obj, "MessageRequest")
             })
         };
         // 连接关闭后响应
         this.ws.onclose = () => {
-            console.log("断开链接");
+            ElNotification({
+                message: "WebSocket断开链接!!!",
+                type: 'error',
+            })
             if (!this.userClose) {
                 this.reconnect(this.wsUrl); // 重连
             }
@@ -123,10 +134,15 @@ class WebSocketClass {
     webSocketSendMsg(msg: msgType, protoClass = 'MessageRequest') {
         // 正常发送数据
         if (!protoClass) return this.ws.send(msg);
-        // eslint-disable-next-line no-param-reassign
         // msg.data = typeof msg.data == 'string' ? msg.data : JSON.stringify(msg.data) // data转JSON
-        // eslint-disable-next-line no-param-reassign
-        msg.data = this.byteArray(JSON.stringify(msg.data)) // 字符串转byte
+        // 后端所需要的参数key
+        msg.key = randomKey()
+        if (message().activeAccountInfo.id) {
+            msg.weChatId = message().activeAccountInfo.id
+            msg.data.wechatId = message().activeAccountInfo.id
+        }
+        console.log('发送的消息==>', { ...msg });
+        msg.data = this.byteArray(JSON.stringify({ userId: userStore().userId, ...msg.data })) // 字符串转byte
         this.ws.send(this.transformRequest(protoClass)(msg))  // 转化二进制发送消息
         this.lockRetry = false
         // if (msg.status == '0') {
@@ -143,7 +159,6 @@ class WebSocketClass {
             if (callback) {
                 this.globalCallback = callback;
             } else {
-                // eslint-disable-next-line no-param-reassign
                 callback = this.globalCallback
             }
             this.lockRetry = true
@@ -154,6 +169,13 @@ class WebSocketClass {
                     console.log('接收的消息====》', obj);
                     if (obj.data.length > 0) {
                         obj.data = JSON.parse(this.byteToString(obj.data)) // byte数组转字符串
+                    }
+                    if (obj.state == 100) {
+                        ElNotification({
+                            title: 'Error',
+                            message: obj.msg,
+                            type: 'error',
+                        })
                     }
                     // eslint-disable-next-line no-unused-expressions
                     callback && callback(obj);
@@ -168,12 +190,12 @@ class WebSocketClass {
     }
 
     // eslint-disable-next-line class-methods-use-this
-    isArrayBuffer(obj: any) {
+    isArrayBuffer(obj: ArrayBuffer | any) {
         return Object.prototype.toString.call(obj) === '[object ArrayBuffer]'
     }
 
     // eslint-disable-next-line class-methods-use-this
-    isBlob(obj: any) {
+    isBlob(obj: Blob | any) {
         return Object.prototype.toString.call(obj) === '[object Blob]'
     }
 

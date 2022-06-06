@@ -3,25 +3,25 @@ import * as $protobuf from "protobufjs";
 export interface IMessageRequest {
 
     /** MessageRequest status */
-    status?: (string|null);
+    status?: (string | null);
 
     /** MessageRequest key */
-    key?: (string|null);
+    key?: (string | null);
 
     /** MessageRequest data */
-    data?: (Uint8Array|null);
+    data?: (Uint8Array | null);
 
     /** MessageRequest clientId */
-    clientId?: (string|null);
+    clientId?: (string | null);
 
     /** MessageRequest weChatId */
-    weChatId?: (string|null);
+    weChatId?: (string | null);
 
     /** MessageRequest state */
-    state?: (number|null);
+    state?: (number | null);
 
     /** MessageRequest msg */
-    msg?: (string|null);
+    msg?: (string | null);
 }
 
 /** Represents a MessageRequest. */
@@ -85,7 +85,7 @@ export class MessageRequest implements IMessageRequest {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): MessageRequest;
+    public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): MessageRequest;
 
     /**
      * Decodes a MessageRequest message from the specified reader or buffer, length delimited.
@@ -94,14 +94,14 @@ export class MessageRequest implements IMessageRequest {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): MessageRequest;
+    public static decodeDelimited(reader: ($protobuf.Reader | Uint8Array)): MessageRequest;
 
     /**
      * Verifies a MessageRequest message.
      * @param message Plain object to verify
      * @returns `null` if valid, otherwise the reason why it is not
      */
-    public static verify(message: { [k: string]: any }): (string|null);
+    public static verify(message: { [k: string]: any }): (string | null);
 
     /**
      * Creates a MessageRequest message from a plain object. Also converts values to their respective internal types.

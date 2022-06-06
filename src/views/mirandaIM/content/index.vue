@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-25 10:39:43
- * @LastEditTime: 2022-05-23 16:56:47
+ * @LastEditTime: 2022-06-01 17:59:34
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\mirandaIM\content\index.vue
@@ -18,7 +18,7 @@
         </el-header>
         <el-main class="el-main content_warp">
             <el-scrollbar ref="scroll" :min-size="10" @scroll="scrollFn">
-                <div v-show="scrollTop < 5" style="text-align: center; font-size: 12px">
+                <div v-show="isMore" style="text-align: center; font-size: 12px">
                     加载更多
                     <el-icon class="is-loading">
                         <Loading />
@@ -45,22 +45,38 @@
                                 }}</span>
                                 <span class="juz">{{ parseTime(item.sendTimeStamp) }}</span>
                             </div>
-                            <div
-                                :class="item.sendType == '0' ? 'opposite_content' : 'me_content'"
-                                :style="item.msgType == '1' ? 'padding: 2px 15px;' : ''"
-                            >
+                            <div :class="item.sendType == '0' ? 'opposite_content' : 'me_content'">
                                 <!-- 文本 -->
-
-                                <div v-if="item.msgType == '1'" class="flex" v-html="parsingEmoji(item.content)"></div>
-
+                                <div v-if="item.msgType == '401'" class="flex" style="background-color: #fff">
+                                    <div v-if="item.ack" style="display: flex; align-items: end; padding: 0 5px">
+                                        <el-icon v-if="item.ack == '0'" class="is-loading">
+                                            <Loading style="width: 14px; height: 14px" />
+                                        </el-icon>
+                                        <CircleCheck v-else style="width: 14px; height: 14px" color="green" />
+                                    </div>
+                                    <div
+                                        :style="`padding: 4px 15px; background-color: ${
+                                            item.sendType == '0' ? '#e9e9e9' : '#cbe5fe'
+                                        }; border-radius: 4px`"
+                                        v-html="parsingEmoji(item.content)"
+                                    ></div>
+                                </div>
                                 <!-- 文件 -->
                                 <div
-                                    v-else-if="item.msgType == '3' || item.msgType == '2' || item.msgType == '4'"
+                                    v-else-if="
+                                        item.msgType == '405' ||
+                                        item.msgType == '402' ||
+                                        item.msgType == '403' ||
+                                        item.msgType == '408'
+                                    "
                                     class="flex"
                                     style="background-color: #fff"
                                 >
                                     <el-progress
-                                        v-if="item.fileId && item.filePercent !== 100 && item.filePercent !== 0"
+                                        v-if="
+                                            (item.fileId && item.filePercent !== 100 && item.filePercent !== 0) ||
+                                            item.ack == '0'
+                                        "
                                         :percentage="item.filePercent"
                                         type="circle"
                                         :stroke-width="2"
@@ -72,7 +88,7 @@
                                     />
                                     <div v-else style="display: flex; align-items: end; padding: 0 5px">
                                         <CircleCheck
-                                            v-if="item.isUpload && item.filePercent == 100"
+                                            v-if="(item.isUpload && item.filePercent == 100) || item.ack == '1'"
                                             style="width: 14px; height: 14px"
                                             color="green"
                                         />
@@ -84,41 +100,45 @@
                                     </div>
                                     <!-- 图片 -->
                                     <img
-                                        v-if="item.msgType == '2'"
+                                        v-if="item.msgType == '402' || item.msgType == '408'"
                                         width="175"
                                         style="cursor: pointer"
-                                        :src="item.content"
-                                        @click="playVideo(true, item.content)"
+                                        :src="item.imageUrl || item.url"
+                                        @click="item.msgType == '408' ? null : playVideo(true, item.imageUrl)"
                                     />
                                     <div
-                                        v-else-if="item.msgType == '3'"
+                                        v-else-if="item.msgType == '405'"
                                         class="file-content"
-                                        @click="downFile(item.content, item.fileName)"
+                                        @click="downFile(item.fileUrl, item.fileName)"
                                     >
                                         <div class="flex">
                                             <span class="juz">{{ item.fileName }}</span>
                                             <div class="juz">
-                                                <img width="30" :src="getSuffix(item.fileName).icoURL" alt="" />
+                                                <img
+                                                    width="35"
+                                                    style="transform: scale(1.5)"
+                                                    :src="getSuffix(item.fileName).icoURL"
+                                                    alt=""
+                                                />
                                             </div>
                                         </div>
                                         <p>{{ getfilesize(item.fileSize) }}</p>
                                     </div>
                                     <!-- 视频 -->
                                     <div
-                                        v-else-if="item.msgType == '4'"
+                                        v-else-if="item.msgType == '403'"
                                         class="video-content"
-                                        @click="playVideo(true, item.content)"
+                                        @click="playVideo(true, item.mp4Url)"
                                     >
-                                        <video :src="item.content"></video>
+                                        <video :src="item.mp4Url"></video>
                                         <span>
                                             <i-ph-play-circle-thin />
                                         </span>
                                     </div>
                                 </div>
-
                                 <!-- 语音 -->
-                                <div v-else-if="item.msgType == '5'">
-                                    <PlayAduio :url="item.content" :is-play="false" :keys="item.sendTimeStamp" />
+                                <div v-else-if="item.msgType == '404'">
+                                    <PlayAduio :url="item.voiceUrl" :is-play="false" :keys="item.sendTimeStamp" />
                                 </div>
                             </div>
                         </li>
@@ -137,13 +157,12 @@ import { Loading, CircleCheck, CircleClose } from '@element-plus/icons-vue';
 import type { ElScrollbar } from 'element-plus';
 import inputInfoVue from './inputInfo.vue';
 import Store from '@/store/message';
-import userStore from '@/store/user';
 import { parsingEmoji } from '@/utils/emjoymethod';
 import { parseTime, getSuffix, getfilesize, downFile } from '@/utils/mineUtils';
+import WebSocketClass from '@/utils/webSocket';
 
-const {
-    proxy: { $websocket },
-} = getCurrentInstance() as any;
+const $websocket = inject('websocket') as WebSocketClass;
+
 const colors = [
     { color: '#f56c6c', percentage: 20 },
     { color: '#e6a23c', percentage: 40 },
@@ -151,7 +170,6 @@ const colors = [
     { color: '#6f7ad3', percentage: 80 },
     { color: '#5cb87a', percentage: 100 },
 ];
-const myuserStore = userStore();
 const myMessage = Store();
 const scroll = ref<InstanceType<typeof ElScrollbar>>();
 const state = reactive({
@@ -159,6 +177,7 @@ const state = reactive({
     contentMess: {} as any,
     chatList: [] as any,
     scrollTop: 0,
+    isMore: true,
 });
 const openVerbal = () => {
     myMessage.setHiddenAside(false);
@@ -169,24 +188,6 @@ const getProgress = (filePercent: number) => {
 };
 const successUpload = (obj: { file: File; fileURL: string }) => {
     console.log(obj);
-};
-const scrollFn = (obj: { scrollTop: number }) => {
-    const content_warp = document.getElementsByClassName('content_warp')[0];
-    state.scrollTop = obj.scrollTop;
-    // 拉取历史消息
-    if (obj.scrollTop == 0 && state.chatList.length > 0) {
-        $websocket.webSocketSendMsg({
-            key: '',
-            status: '6',
-            data: {
-                userId: `${myuserStore.userId}`,
-                conversationId: state.contentMess.conversationId,
-                sendTimeStamp: new Date().getTime() / 1000,
-                size: 10,
-            },
-        });
-        scroll.value?.setScrollTop(content_warp.clientHeight);
-    }
 };
 const setScrollHeight = (number = 0) => {
     const content_warp = document.getElementsByClassName('content_warp')[0];
@@ -199,23 +200,47 @@ const setScrollHeight = (number = 0) => {
         }
     });
 };
+const scrollFn = (obj: { scrollTop: number }) => {
+    // const content_warp = document.getElementsByClassName('content_warp')[0];
+    state.scrollTop = obj.scrollTop;
+    // 拉取历史消息
+    if (obj.scrollTop == 0 && state.chatList.length > 0) {
+        $websocket.webSocketSendMsg({
+            status: '6',
+            data: {
+                conversationId: state.contentMess.conversationId,
+                sendTimeStamp: state.chatList[0].sendTimeStamp,
+                size: 10,
+            },
+        });
+        // scroll.value?.setScrollTop(content_warp.clientHeight);
+    }
+};
 
+// 拉取聊天消息的状态操作
+const chatStatus = (show: boolean) => {
+    // 更多消息的状态显示
+    state.isMore = show;
+};
 // 播放视频
 const playVideo = inject('openDialog') as Function;
-
 watchEffect(() => {
     state.contentMess = computed(() => myMessage.getContextObj).value;
     state.isHidden = computed(() => myMessage.getHiddenAside).value;
     state.chatList = computed(() => myMessage.getChatList).value;
     if (state.chatList.length <= 20) {
+        state.isMore = false;
         setScrollHeight();
     }
 });
-// onMounted(() => {
-
-// })
-
-const { isHidden, contentMess, chatList, scrollTop } = toRefs(state);
+defineExpose({
+    chatStatus,
+    setScrollHeight,
+});
+onMounted(() => {
+    setScrollHeight();
+});
+const { isHidden, contentMess, chatList, isMore } = toRefs(state);
 </script>
 
 <style lang="scss" scoped>
@@ -258,9 +283,6 @@ const { isHidden, contentMess, chatList, scrollTop } = toRefs(state);
         .opposite_content {
             display: inline-block;
             margin-left: 30px;
-
-            background-color: #e9e9e9;
-            border-radius: 4px;
         }
 
         .right {
@@ -279,9 +301,6 @@ const { isHidden, contentMess, chatList, scrollTop } = toRefs(state);
 
             .me_content {
                 margin-right: 30px;
-
-                background-color: #cbe5fe;
-                border-radius: 4px;
                 float: right;
             }
         }

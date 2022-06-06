@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-04-02 10:45:44
- * @LastEditTime: 2022-05-23 15:46:33
+ * @LastEditTime: 2022-06-02 09:37:15
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\components\InputBox\index.vue
@@ -11,15 +11,14 @@
         @keydown="inputKeyUp">
         <p>&nbsp;</p>
     </div> -->
-    <div ref="input_box" class="input_box" contenteditable="true" @keydown="inputKeyUp">
-        <p>&nbsp;</p>
-    </div>
+    <div ref="input_box" class="input_box" contenteditable="true" @input="inputVmodel" @keydown="inputKeyUp"></div>
 </template>
 
 <script setup lang="ts">
 const input_box = ref<HTMLDivElement>();
 // eslint-disable-next-line vue/require-prop-types
 const props = defineProps(['enter']);
+const emit = defineEmits(['input']);
 // interface stateType {
 //     cursor: number
 //     position: Range | undefined
@@ -29,6 +28,8 @@ const props = defineProps(['enter']);
 //     position: undefined,
 // })
 // const emit = defineEmits(['change', 'addContent',]);
+const inputVmodel = (e: Event) => emit('input', e);
+
 // 设置光标位置
 function setCaretPosition(ctrl: Node | Text) {
     // Modern browsers
@@ -111,6 +112,7 @@ const getChildNode = (type: string) => {
 const clearContent = () => {
     (input_box.value as HTMLElement).innerHTML = `<p>&nbsp;</p>`;
 };
+
 // 粘贴图片
 // const pasteIntercept = (d: any) => {
 //     const obj = {
@@ -177,6 +179,7 @@ function dragoverHandler(e: Event) {
 
 onMounted(() => {
     input_box.value?.focus();
+    clearContent();
     // 禁止浏览器打开拖拽的图片
     // document.addEventListener('drop', dropHandler, false);
     // document.addEventListener('dragover', dragoverHandler, false);
@@ -187,6 +190,7 @@ onUnmounted(() => {
 });
 // 使用这个方法导出方法或者属性 便于父组件通过ref 获取到实例
 defineExpose({
+    html: input_box,
     insertStr,
     getChildNode,
     clearContent,

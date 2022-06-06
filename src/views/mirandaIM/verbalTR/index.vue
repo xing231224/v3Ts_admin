@@ -1,11 +1,3 @@
-<!--
- * @Author: your name
- * @Date: 2022-03-25 10:42:04
- * @LastEditTime: 2022-05-20 15:36:38
- * @LastEditors: xing 1981193009@qq.com
- * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- * @FilePath: \v3ts_admin\src\views\mirandaIM\verbalTrick\index.vue
--->
 <template>
     <div class="verbal_header flex-sb">
         <div class="flex-sa" style="flex: 0.5">
@@ -111,11 +103,7 @@ const send = () => {
         background: 'rgba(0, 0, 0, 0.7)',
         target: document.querySelector('.dialogVisible') as HTMLElement,
     });
-    const obj = {
-        scenarios: state.radioId,
-        ids,
-    };
-    sendScenarios(obj).then((res) => {
+    sendScenarios({ scenarios: state.radioId, ids }).then((res) => {
         if (res.data.status == 200) {
             $tips('success', res.data.msg);
             loadingInstance.close();

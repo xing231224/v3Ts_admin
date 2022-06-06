@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-24 17:26:53
- * @LastEditTime: 2022-05-19 11:33:14
+ * @LastEditTime: 2022-06-02 17:27:16
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\mirandaIM\friendList.vue
@@ -15,8 +15,17 @@
             </el-tooltip>
             <List :lists="needList[0]" :active="'first'" />
         </div>
-        <div v-show="messageStore.activeAccountInfo.id" style="height: 100%; flex: 1; overflow: hidden">
-            <div style="padding: 15px 10px">
+        <div
+            v-show="messageStore.activeAccountInfo.id"
+            class="chat_list"
+            style="height: 100%; flex: 1; overflow: hidden"
+        >
+            <!-- <div style="text-align: center; margin: 12px 0 0">
+                <el-tooltip content="刷新" placement="bottom" effect="light">
+                    <el-button type="warning" :icon="Loading" :loading="isLoading" circle @click="reflush" />
+                </el-tooltip>
+            </div> -->
+            <div style="padding: 12px 10px">
                 <el-autocomplete
                     v-model="input2"
                     :fetch-suggestions="querySearch"
@@ -34,12 +43,15 @@
                 </el-autocomplete>
             </div>
             <el-tabs v-model="activeName" stretch class="demo-tabs" :before-leave="beforeLeave">
-                <el-tab-pane
-                    v-for="(item, index) in tabsList"
-                    :key="item.name"
-                    :label="item.name == 'second' ? item.label + `(${needList[index]?.length})` : item.label"
-                    :name="item.name"
-                >
+                <el-tab-pane v-for="(item, index) in tabsList" :key="item.name" :name="item.name">
+                    <template #label>
+                        <!-- <div v-if="item.name == 'second'">
+                            <el-badge class="badge" :hidden="!messNum" :value="messNum">{{
+                                item.label + `(${needList[index]?.length})`
+                            }}</el-badge>
+                        </div> -->
+                        <span>{{ item.label }}</span>
+                    </template>
                     <List ref="contacts" :lists="needList[index]" :active="activeName" @handover="handover" />
                 </el-tab-pane>
             </el-tabs>
@@ -48,11 +60,13 @@
 </template>
 
 <script setup lang="ts">
-import { Search, CirclePlus } from '@element-plus/icons-vue';
+import { Search, CirclePlus, Loading } from '@element-plus/icons-vue';
+import { ElLoading } from 'element-plus';
 import List from './list.vue';
 import Store from '@/store/message';
 import { flatten } from '@/utils/mineUtils';
 import { userType } from './type';
+import WebSocketClass from '@/utils/webSocket';
 
 const {
     proxy: { $tips },
@@ -63,6 +77,7 @@ const messageStore = Store();
 const state = reactive({
     activeName: 'second',
     input2: '',
+    isLoading: false,
     tabsList: [
         {
             label: '聊天列表',
@@ -75,8 +90,27 @@ const state = reactive({
     ],
     needList: [[], []] as [any[], any[]],
 });
-const list = inject('dataList') as [[], []];
-
+const $websocket = inject('websocket') as WebSocketClass;
+const loadingFn = inject('loading') as Function;
+// 刷新
+const reflush = () => {
+    const loading = ElLoading.service({
+        lock: true,
+        text: 'Loading',
+        background: 'rgba(0, 0, 0, 0.7)',
+        target: '.el-tabs__content',
+    });
+    // 清空聊天窗口数据
+    loadingFn(loading);
+    // state.isLoading = true;
+    // 向后端获取联系人数据
+    ['7', '8', '9', '11'].forEach((item) => {
+        $websocket.webSocketSendMsg({
+            status: item,
+            data: { wechatId: messageStore.activeAccountInfo.id, reflush: '1' },
+        });
+    });
+};
 const beforeLeave = () => {
     if (!messageStore.activeAccountInfo.id) {
         $tips('warning', '未选择微企账号！！！');
@@ -86,34 +120,32 @@ const beforeLeave = () => {
 const handover = (str: string) => {
     state.activeName = str;
 };
-const dataDispose = () => {
-    state.needList = [...list];
-};
+
 // 多账号添加
 const addUser = () => {
+    // 最多添加五个子账号
+    if (messageStore.accounts.length == 5) return;
     messageStore.isLogin = true;
 };
+
+// 创建联系人搜索 过滤
 const createFilter = (queryString: string) => {
-    return (restaurant: userType) => {
-        return restaurant.name.toLowerCase().indexOf(queryString.toLowerCase()) === 0;
-    };
+    return (restaurant: userType) => restaurant.name.indexOf(queryString) != -1;
 };
+// 联系人搜索
 const querySearch = (queryString: string, cb: any) => {
-    const arr = flatten(list[1].map((item: any) => item.children));
+    const arr = flatten(state.needList[1].map((item: any) => item.children));
     const results = queryString !== ' ' ? arr.filter(createFilter(queryString)) : arr;
     // call callback function to return suggestions
     cb(results);
 };
 const handleSelect = (item: any) => proxy.$refs.contacts[0].openNewWindow(item);
-watch(list, () => {
-    dataDispose();
-    messageStore.setContactList(list);
-});
-onMounted(() => {
-    dataDispose();
+watchEffect(() => {
+    // 状态层获取列表数据
+    state.needList = computed(() => messageStore.contactList).value;
 });
 
-const { input2, tabsList, needList, activeName } = toRefs(state);
+const { input2, tabsList, needList, activeName, isLoading } = toRefs(state);
 </script>
 
 <style lang="scss" scoped>
@@ -134,6 +166,11 @@ const { input2, tabsList, needList, activeName } = toRefs(state);
 .demo-tabs {
     &::v-deep(.el-tabs__nav-wrap::after) {
         background-color: #fff;
+    }
+}
+.badge {
+    &::v-deep(.el-badge__content) {
+        top: 10px;
     }
 }
 </style>

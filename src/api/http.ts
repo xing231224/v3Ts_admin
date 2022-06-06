@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2022-03-23 09:44:33
- * @LastEditTime: 2022-05-09 10:12:13
+ * @LastEditTime: 2022-05-31 09:18:14
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\api\http.ts
@@ -64,14 +64,11 @@ axiosInstance.interceptors.response.use(
     (error: AxiosError) => {
         const { response } = error;
         console.log(response);
-
-        if (response) {
-            if (response.status === 401) {
-                removeToken()
-                router.push('/login')
-            }
+        if (response?.status === 401) {
+            console.log(router);
             ElMessage.error(showCodeMessage(response.status));
-            return Promise.reject(response.data);
+            removeToken()
+            router.push('/login')
         }
         ElMessage.warning('网络连接异常,请稍后再试!');
         return Promise.reject(error);

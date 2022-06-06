@@ -1,8 +1,8 @@
 <!--
  * @Author: your name
  * @Date: 2022-02-16 14:12:32
- * @LastEditTime: 2022-04-21 10:08:39
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2022-05-24 09:19:41
+ * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3-ts_demo\src\views\login\index.vue
 -->
@@ -12,9 +12,11 @@
             <div style="flex: 1" class="login-img flex-col-center">
                 <div style="width: 70%; margin: 0 auto">
                     <p class="flex" style="padding: 0 10px; position: relative; top: -120px">
-                        <img class="animate__animated animate__backInDown"
+                        <img
+                            class="animate__animated animate__backInDown"
                             style="border-radius: 50%; width: 60px; margin: 0 10px"
-                            src="../../assets/age1f-rzq97.png" />
+                            src="../../assets/age1f-rzq97.png"
+                        />
                         <span class="juz" style="font-size: 30px; font-weight: bold">后台系统管理</span>
                     </p>
                     <img class="svg" src="../../assets/Clip_Applying_to_University_online_transparent_by_Icons8.gif" />
@@ -25,8 +27,15 @@
                 </div>
             </div>
             <div style="flex: 1" class="flex-col-center">
-                <el-form id="login" ref="loginFormRef" :model="loginForm" :rules="loginRules" class="login-form"
-                    autocomplete="on" label-position="left">
+                <el-form
+                    id="login"
+                    ref="loginFormRef"
+                    :model="loginForm"
+                    :rules="loginRules"
+                    class="login-form"
+                    autocomplete="on"
+                    label-position="left"
+                >
                     <div id="owl-login" :class="isBlur ? 'password' : ''">
                         <div class="hand"></div>
                         <div class="hand hand-r"></div>
@@ -44,20 +53,34 @@
                             <i-ep-iphone />
                         </span>
 
-                        <el-input ref="userNameRef" v-model="loginForm.mobile" name="username" placeholder="手机号"
-                            type="text" tabindex="1" autocomplete="on" />
+                        <el-input
+                            ref="userNameRef"
+                            v-model="loginForm.mobile"
+                            name="username"
+                            placeholder="手机号"
+                            type="text"
+                            tabindex="1"
+                            autocomplete="on"
+                        />
                     </el-form-item>
                     <el-tooltip v-model="capsTooltip" content="Caps lock is On" placement="right" manual>
                         <el-form-item prop="password" class="animate__animated animate__fadeInRight ms-3">
                             <span class="svg-container juz">
                                 <i-mdi-lock-outline />
                             </span>
-                            <el-input :key="passwordType" ref="passwordRef" v-model="loginForm.password"
-                                :type="passwordType" name="password" tabindex="2" autocomplete="on"
-                                @keyup="checkCapslock" @blur="
-    capsTooltip = false,
-    isBlur = false;
-                                " @focus="isBlur = true" @keyup.enter="handleLogin" />
+                            <el-input
+                                :key="passwordType"
+                                ref="passwordRef"
+                                v-model="loginForm.password"
+                                :type="passwordType"
+                                name="password"
+                                tabindex="2"
+                                autocomplete="on"
+                                @keyup="checkCapslock"
+                                @blur="(capsTooltip = false), (isBlur = false)"
+                                @focus="isBlur = true"
+                                @keyup.enter="handleLogin"
+                            />
                             <a></a>
                             <span class="show-pwd" @click="showPwd">
                                 <i-mdi-eye v-if="passwordType === 'password'" />
@@ -85,8 +108,14 @@
                             >{{ text }}</el-button>
                         </div>
                     </el-form-item>-->
-                    <el-button class="animate__animated animate__fadeInRight ms-4" :loading="loading" type="primary"
-                        style="width: 100%" @click="handleLogin">登录</el-button>
+                    <el-button
+                        class="animate__animated animate__fadeInRight ms-4"
+                        :loading="loading"
+                        type="primary"
+                        style="width: 100%"
+                        @click="handleLogin"
+                        >登录</el-button
+                    >
                     <div style="position: relative">
                         <div class="tips">
                             <span></span>
@@ -160,11 +189,13 @@
 </template>
 
 <script setup lang="ts">
-import store from "@/store/user"
+import store from '@/store/user';
 
-const { proxy: { $tips } } = getCurrentInstance() as any;
+const {
+    proxy: { $tips },
+} = getCurrentInstance() as any;
 const router = useRouter();
-const userStore = store()
+const userStore = store();
 const validateMobile = (rule: any, value: string, callback: Function) => {
     if (!/^1[34578]\d{9}$/.test(value)) {
         callback(new Error('手机号格式不正确'));
@@ -182,10 +213,11 @@ const validatePassword = (rule: any, value: string, callback: Function) => {
 // 获取dom
 const loginFormRef = ref(null);
 const passwordRef = ref(null);
+
 const state = reactive({
     loginForm: {
-        mobile: '18270811535',
-        password: '123456',
+        mobile: '',
+        password: '',
     },
     loginRules: {
         mobile: [{ validator: validateMobile, trigger: 'blur' }],
@@ -212,11 +244,14 @@ const handleLogin = () => {
     (loginFormRef.value as any).validate(async (valid: boolean) => {
         if (valid) {
             state.loading = true;
-            userStore.MobileLogin(state.loginForm).then(() => {
-                router.replace('/');
-            }).catch(error => {
-                $tips('error', error)
-            })
+            userStore
+                .MobileLogin(state.loginForm)
+                .then(() => {
+                    router.replace('/');
+                })
+                .catch((error) => {
+                    $tips('error', error);
+                });
             // Just to simulate the time of the request
             // setTimeout(() => {
             //     state.loading = false;
@@ -265,7 +300,7 @@ const { loginForm, loginRules, loading, isBlur, passwordType, capsTooltip } = to
 </script>
 
 <style lang="scss" scoped>
-@import "../../assets/styles/login.css";
+@import '../../assets/styles/login.css';
 
 .login-container {
     height: 100%;
@@ -283,14 +318,13 @@ const { loginForm, loginRules, loading, isBlur, passwordType, capsTooltip } = to
         background-position: 100%;
         background-repeat: no-repeat;
         background-size: auto 100%;
-        content: "";
+        content: '';
     }
 
-    :deep(.el-input) {
+    &::v-deep(.el-input) {
         display: inline-block;
         height: 47px;
         width: 60%;
-
         input {
             height: 47px;
             background: transparent;
@@ -358,11 +392,11 @@ const { loginForm, loginRules, loading, isBlur, passwordType, capsTooltip } = to
         border-radius: 40px;
         margin: auto;
 
-        :deep(.is-disabled .el-input__inner) {
+        &::v-deep(.is-disabled .el-input__inner) {
             background: transparent;
         }
 
-        :deep(.el-form-item__content) {
+        &::vdeep(.el-form-item__content) {
             line-height: normal;
         }
     }

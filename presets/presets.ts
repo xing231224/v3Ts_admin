@@ -21,9 +21,7 @@ import { resolve } from 'path';
 // 对于 ElMessage 组件的第一次扫描失效，只有手动进入了页面才会加载
 // TODO: 何时问题解决，何时移除插件
 // import styleImport, { ElementPlusResolve } from 'vite-plugin-style-import';
-
 const defaultClasses = 'prose prose-sm m-auto text-left';
-
 export default (env: ConfigEnv) => {
     return [
         vue({

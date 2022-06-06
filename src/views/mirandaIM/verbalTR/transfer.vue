@@ -2,7 +2,7 @@
  * @Author: xing 1981193009@qq.com
  * @Date: 2022-05-20 09:52:04
  * @LastEditors: xing 1981193009@qq.com
- * @LastEditTime: 2022-05-20 15:19:36
+ * @LastEditTime: 2022-05-30 10:32:55
  * @FilePath: \v3ts_admin\src\views\mirandaIM\verbalTR\transfer.vue
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
@@ -101,7 +101,6 @@ const changeSear = (val: string) => {
 const handleCheckedCitiesChange = (value: string[]) => {
     const checkedCount = value.length;
     checkAll.value = checkedCount === props.data.length;
-
     isIndeterminate.value = checkedCount > 0 && checkedCount < props.data.length;
 };
 const handleCheckAllChange = (val: boolean) => {
