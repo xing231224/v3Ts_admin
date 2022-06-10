@@ -2,7 +2,7 @@
  * @Author: xing 1981193009@qq.com
  * @Date: 2022-05-20 09:52:04
  * @LastEditors: xing 1981193009@qq.com
- * @LastEditTime: 2022-05-30 10:32:55
+ * @LastEditTime: 2022-06-06 17:20:53
  * @FilePath: \v3ts_admin\src\views\mirandaIM\verbalTR\transfer.vue
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
@@ -80,6 +80,8 @@ const props = defineProps({
         type: Array as () => datatype[],
         required: true,
     },
+    // eslint-disable-next-line vue/require-default-prop
+    historyData: Array as () => string[],
 });
 const checkAll = ref(false);
 const isIndeterminate = ref(false);
@@ -113,6 +115,15 @@ watch(checkedCities, (n) => {
         state.selectList.push(...props.data.filter((item) => item.id == id));
     });
 });
+watch(
+    () => props.historyData,
+    (n) => {
+        if (n && n?.length > 0) {
+            checkedCities.value = n;
+        }
+    },
+    { immediate: true },
+);
 defineExpose({
     state,
 });

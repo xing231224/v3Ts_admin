@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-21 14:09:09
- * @LastEditTime: 2022-06-02 16:49:29
+ * @LastEditTime: 2022-06-09 15:48:04
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3-ts_demo\src\views\mirandaIM\index.vue
@@ -63,11 +63,11 @@
     <el-dialog
         v-if="dialogVisible"
         v-model="dialogVisible"
-        :title="isVideo(fileUrl) ? '查看视频' : '查看图片'"
+        :title="msgType == '403' ? '查看视频' : '查看图片'"
         width="30%"
         @close="handleClose"
     >
-        <div v-if="isVideo(fileUrl)">
+        <div v-if="msgType == '403'">
             <video id="upvideo" :src="fileUrl" style="width: 100%; height: 100%" controls>
                 您的浏览器不支持视频播放
             </video>
@@ -76,7 +76,7 @@
         <template #footer>
             <span class="dialog-footer">
                 <el-button @click="dialogVisible = false">关闭</el-button>
-                <el-button type="primary" @click="downFile(fileUrl, isVideo(fileUrl) ? '视频.mp4' : '图片.png')"
+                <el-button type="primary" @click="downFile(fileUrl, msgType == '403' ? '视频.mp4' : '图片.png')"
                     >下载
                 </el-button>
             </span>
@@ -109,28 +109,32 @@ const state = reactive({
     isChatList: false,
     isContacts: false,
     loading: null as unknown as { close: Function },
+    msgType: '',
 });
 const fileUrl = ref('');
 const handleClose = () => {
     state.imgBase64 = '';
+    state.msgType = '';
 };
 
 const chatContent = ref();
 // 判断url后缀名是否是视频格式的
-const isVideo = computed(() => {
-    return (url: any) => {
-        const last = url.substring(url.lastIndexOf('.'));
-        if (last == '.png' || last == '.jpg' || last == '.jpeg' || last == '.jfif') {
-            return false;
-        }
-        if (last == '.mp4' || last == '.mov' || last == '.m4v' || last == '.wmv') {
-            return true;
-        }
-    };
-});
-const openDialog = (bool: boolean, url: string) => {
+// const isVideo = computed(() => {
+//     return (url: any) => {
+//         const last = url.substring(url.lastIndexOf('.'));
+//         if (last == '.png' || last == '.jpg' || last == '.jpeg' || last == '.jfif') {
+//             return false;
+//         }
+//         if (last == '.mp4' || last == '.mov' || last == '.m4v' || last == '.wmv') {
+//             return true;
+//         }
+//     };
+// });
+const openDialog = (bool: boolean, url: string, msgType: string) => {
     state.dialogVisible = bool;
     fileUrl.value = url;
+    //  403视频  402图片
+    state.msgType = msgType;
 };
 // 时间排序
 const sortTime = (arr: any[]): any[] => {
@@ -191,10 +195,10 @@ $websocket.getWebSocketMsg((obj: any) => {
     switch (obj.status) {
         // 消息发送成功
         case '4':
-            myMessage.editMsg(obj.data);
+            myMessage.editMsg(obj.data, obj.weChatId);
             // 添加消息 滚动条位置
             setTimeout(() => {
-                chatContent.value.setScrollHeight();
+                chatContent.value?.setScrollHeight();
             }, 500);
             break;
         // 当前窗口聊天记录
@@ -260,7 +264,7 @@ onMounted(() => {
         $websocket.webSocketSendMsg({ status: '10' });
     }, 800);
 });
-const { value, dialogVisible, isHidden, isContentMess, imgBase64 } = toRefs(state);
+const { value, dialogVisible, isHidden, isContentMess, imgBase64, msgType } = toRefs(state);
 </script>
 
 <style lang="scss" scoped>

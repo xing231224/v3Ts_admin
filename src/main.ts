@@ -1,11 +1,3 @@
-/*
- * @Author: your name
- * @Date: 2022-02-12 15:53:45
- * @LastEditTime: 2022-05-28 10:12:04
- * @LastEditors: xing 1981193009@qq.com
- * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- * @FilePath: \vitecamp\src\main.ts
- */
 // i18n
 // import { createI18n } from 'vue-i18n';
 // vue router
@@ -28,7 +20,7 @@ import { tips, confirmBox } from './utils/tips';
 
 const app = createApp(App);
 app.use(router).use(store).mount('#app');
-
+app.config.warnHandler = () => null;
 // 全局参数
 // app.config.globalProperties.$websocket = new WebSocketClass("127.0.0.1:6080");
 // 解析emo表情

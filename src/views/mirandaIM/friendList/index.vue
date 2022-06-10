@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-24 17:26:53
- * @LastEditTime: 2022-06-02 17:27:16
+ * @LastEditTime: 2022-06-09 15:11:20
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\mirandaIM\friendList.vue
@@ -20,11 +20,11 @@
             class="chat_list"
             style="height: 100%; flex: 1; overflow: hidden"
         >
-            <!-- <div style="text-align: center; margin: 12px 0 0">
+            <div style="text-align: center; margin: 12px 0 0">
                 <el-tooltip content="刷新" placement="bottom" effect="light">
                     <el-button type="warning" :icon="Loading" :loading="isLoading" circle @click="reflush" />
                 </el-tooltip>
-            </div> -->
+            </div>
             <div style="padding: 12px 10px">
                 <el-autocomplete
                     v-model="input2"
@@ -61,7 +61,7 @@
 
 <script setup lang="ts">
 import { Search, CirclePlus, Loading } from '@element-plus/icons-vue';
-import { ElLoading } from 'element-plus';
+import { ElLoading, ElMessageBox } from 'element-plus';
 import List from './list.vue';
 import Store from '@/store/message';
 import { flatten } from '@/utils/mineUtils';
@@ -94,22 +94,30 @@ const $websocket = inject('websocket') as WebSocketClass;
 const loadingFn = inject('loading') as Function;
 // 刷新
 const reflush = () => {
-    const loading = ElLoading.service({
-        lock: true,
-        text: 'Loading',
-        background: 'rgba(0, 0, 0, 0.7)',
-        target: '.el-tabs__content',
-    });
-    // 清空聊天窗口数据
-    loadingFn(loading);
-    // state.isLoading = true;
-    // 向后端获取联系人数据
-    ['7', '8', '9', '11'].forEach((item) => {
-        $websocket.webSocketSendMsg({
-            status: item,
-            data: { wechatId: messageStore.activeAccountInfo.id, reflush: '1' },
-        });
-    });
+    ElMessageBox.confirm('确认刷新嘛？', '提示', {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'warning',
+    })
+        .then(() => {
+            const loading = ElLoading.service({
+                lock: true,
+                text: 'Loading',
+                background: 'rgba(0, 0, 0, 0.7)',
+                target: '.el-tabs__content',
+            });
+            // 清空聊天窗口数据
+            loadingFn(loading);
+            // state.isLoading = true;
+            // 向后端获取联系人数据
+            ['7', '8', '9', '11'].forEach((item) => {
+                $websocket.webSocketSendMsg({
+                    status: item,
+                    data: { wechatId: messageStore.activeAccountInfo.id, reflush: '1' },
+                });
+            });
+        })
+        .catch(() => null);
 };
 const beforeLeave = () => {
     if (!messageStore.activeAccountInfo.id) {

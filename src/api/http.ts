@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2022-03-23 09:44:33
- * @LastEditTime: 2022-05-31 09:18:14
+ * @LastEditTime: 2022-06-08 09:17:16
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\api\http.ts
@@ -12,11 +12,10 @@ import { ElMessage } from 'element-plus';
 import showCodeMessage from '@/api/code';
 import { formatJsonToUrlParams, instanceObject } from '@/utils/format';
 import { getToken, removeToken } from '@/utils/cookies';
-import router from '@/router/index';
+import userStore from '@/store/user';
 
 const BASE_PREFIX = import.meta.env.VITE_API_BASEURL;
 // console.log(BASE_PREFIX);
-
 
 // 创建实例
 const axiosInstance: AxiosInstance = axios.create({
@@ -30,7 +29,6 @@ const axiosInstance: AxiosInstance = axios.create({
     },
 });
 
-
 // 请求拦截器
 axiosInstance.interceptors.request.use(
     (config: AxiosRequestConfig) => {
@@ -39,10 +37,10 @@ axiosInstance.interceptors.request.use(
         if (getToken()) {
             config.headers = {
                 ...config.headers,
-                Authorization: `Bearer ${getToken()}`// 让每个请求携带token--['X-Token']为自定义key 请根据实际情况自行修改
-            }
-            if (config.url?.indexOf("/export") != -1) {
-                config.responseType = "blob";
+                Authorization: `Bearer ${getToken()}`, // 让每个请求携带token--['X-Token']为自定义key 请根据实际情况自行修改
+            };
+            if (config.url?.indexOf('/export') != -1) {
+                config.responseType = 'blob';
             }
         }
         return config;
@@ -63,12 +61,13 @@ axiosInstance.interceptors.response.use(
     },
     (error: AxiosError) => {
         const { response } = error;
-        console.log(response);
         if (response?.status === 401) {
-            console.log(router);
             ElMessage.error(showCodeMessage(response.status));
-            removeToken()
-            router.push('/login')
+            userStore()
+                .loginOut()
+                .then(() => {
+                    window.location.reload();
+                });
         }
         ElMessage.warning('网络连接异常,请稍后再试!');
         return Promise.reject(error);

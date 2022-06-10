@@ -33,11 +33,11 @@
     </div>
     <el-dialog v-model="dialogVisible" title="发送话术" width="60%" class="dialogVisible" @close="handleClose">
         <el-tabs v-model="activeWeChat" tab-position="left" class="demo-tabs">
-            <el-tab-pane label="内部联系人" name="external">
-                <Transfer ref="external" :data="wechatList.external" />
+            <el-tab-pane label="内部联系人" name="internal">
+                <Transfer ref="internal" :data="wechatList.internal" :history-data="wechatList.internalCache" />
             </el-tab-pane>
-            <el-tab-pane label="外部联系人" name="internal"
-                ><Transfer ref="internal" :data="wechatList.internal" />
+            <el-tab-pane label="外部联系人" name="external"
+                ><Transfer ref="external" :data="wechatList.external" :history-data="wechatList.externalCache" />
             </el-tab-pane>
         </el-tabs>
         <template #footer>
@@ -66,12 +66,12 @@ const {
 const myMessage = Store();
 const state = reactive({
     activeName: 'first',
-    activeWeChat: 'external',
+    activeWeChat: 'internal',
     input2: '',
     scenariosList: [] as { id: number; name: string; isCheckbox: boolean }[],
     radioId: '',
     dialogVisible: false,
-    wechatList: {} as { external: any[]; internal: any[] },
+    wechatList: {} as { internal: any[]; external: any[]; internalCache: any[]; externalCache: any[] },
 });
 const getScenarios = () => {
     sreachScenarios({}).then((res) => {
@@ -103,7 +103,9 @@ const send = () => {
         background: 'rgba(0, 0, 0, 0.7)',
         target: document.querySelector('.dialogVisible') as HTMLElement,
     });
-    sendScenarios({ scenarios: state.radioId, ids }).then((res) => {
+    const type = state.activeWeChat == 'internal' ? 1 : 2;
+
+    sendScenarios({ scenarios: state.radioId, ids, type, wechatId: myMessage.activeAccountInfo.id }).then((res) => {
         if (res.data.status == 200) {
             $tips('success', res.data.msg);
             loadingInstance.close();

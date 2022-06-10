@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-25 09:45:11
- * @LastEditTime: 2022-06-02 16:54:29
+ * @LastEditTime: 2022-06-09 15:47:17
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\mirandaIM\friendList\list.vue
@@ -112,12 +112,10 @@
                         <p v-else-if="item.offLineMsg?.msgType == '408'">[表情]</p>
                         <p v-else>
                             {{
-                                isVideo(item.offLineMsg?.content) == 'img'
+                                item.offLineMsg?.msgType == '402'
                                     ? '[图片]'
-                                    : isVideo(item.offLineMsg?.content) == 'video'
+                                    : item.offLineMsg?.msgType == '403'
                                     ? '[视频]'
-                                    : isVideo(item.offLineMsg?.content) == 'text'
-                                    ? item.offLineMsg?.content
                                     : '[文件]'
                             }}
                         </p>
@@ -142,7 +140,7 @@ import { ElLoading } from 'element-plus';
 import Store from '@/store/message';
 import { userType, userInfo } from './type';
 import userStore from '@/store/user';
-import { timeDispose, isVideo } from '@/utils/mineUtils';
+import { timeDispose } from '@/utils/mineUtils';
 import WebSocketClass from '@/utils/webSocket';
 
 const scroll = ref<InstanceType<typeof ElScrollbar>>();
@@ -232,9 +230,14 @@ const select = (row: any) => {
         background: 'rgba(0, 0, 0, 0.7)',
         target: '.chat_list',
     });
-    loadingFn(loading);
     myMessage.setActiveAccountInfo(row);
-    if (row.contactList) return;
+    // if (row.contactList) {
+    //     setTimeout(() => {
+    //         loading.close();
+    //     }, 500);
+    //     return;
+    // }
+    loadingFn(loading);
     // 向后端获取联系人数据
     ['7', '8', '9', '11'].forEach((item) => {
         $websocket.webSocketSendMsg({ status: item, data: { userId: `${myuserStore.userId}`, wechatId: row.id } });

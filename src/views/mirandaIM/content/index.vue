@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-25 10:39:43
- * @LastEditTime: 2022-06-01 17:59:34
+ * @LastEditTime: 2022-06-09 15:38:45
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\mirandaIM\content\index.vue
@@ -41,11 +41,19 @@
                                     "
                                 />
                                 <span class="juz" style="margin: 0 10px">{{
-                                    item.sendType == '0' ? contentMess.name : myMessage.activeAccountInfo.name
+                                    item.sendType == '0'
+                                        ? item.conversationId[0] == 'R'
+                                            ? item.senderNickName
+                                            : contentMess.name
+                                        : myMessage.activeAccountInfo.name
                                 }}</span>
-                                <span class="juz">{{ parseTime(item.sendTimeStamp) }}</span>
+                                <span class="juz">{{ parseTime(item.sendTimeStamp, `{y}/{m}/{d} {h}:{i}`) }}</span>
                             </div>
-                            <div :class="item.sendType == '0' ? 'opposite_content' : 'me_content'">
+                            <div
+                                :class="
+                                    item.sendType == '0' ? 'opposite_content content-text' : 'me_content content-text'
+                                "
+                            >
                                 <!-- 文本 -->
                                 <div v-if="item.msgType == '401'" class="flex" style="background-color: #fff">
                                     <div v-if="item.ack" style="display: flex; align-items: end; padding: 0 5px">
@@ -104,7 +112,9 @@
                                         width="175"
                                         style="cursor: pointer"
                                         :src="item.imageUrl || item.url"
-                                        @click="item.msgType == '408' ? null : playVideo(true, item.imageUrl)"
+                                        @click="
+                                            item.msgType == '408' ? null : playVideo(true, item.imageUrl, item.msgType)
+                                        "
                                     />
                                     <div
                                         v-else-if="item.msgType == '405'"
@@ -128,7 +138,7 @@
                                     <div
                                         v-else-if="item.msgType == '403'"
                                         class="video-content"
-                                        @click="playVideo(true, item.mp4Url)"
+                                        @click="playVideo(true, item.mp4Url, item.msgType)"
                                     >
                                         <video :src="item.mp4Url"></video>
                                         <span>
@@ -283,6 +293,12 @@ const { isHidden, contentMess, chatList, isMore } = toRefs(state);
         .opposite_content {
             display: inline-block;
             margin-left: 30px;
+            // position: relative;
+            // &::before {
+            //     left: -6px;
+            //     top: 16px;
+            //     transform: rotate(135deg);
+            // }
         }
 
         .right {
@@ -303,6 +319,22 @@ const { isHidden, contentMess, chatList, isMore } = toRefs(state);
                 margin-right: 30px;
                 float: right;
             }
+        }
+        .content-text {
+            max-width: 70%;
+            // &::before {
+            // content: '';
+            // display: inline-block;
+            // box-sizing: border-box;
+            // width: 12px;
+            // height: 12px;
+            // border: 1px solid transparent;
+            // border-radius: 3px;
+            // position: absolute;
+            // background-color: inherit;
+            // border-right-color: inherit;
+            // border-bottom-color: inherit;
+            // }
         }
     }
 

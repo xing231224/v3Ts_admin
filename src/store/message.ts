@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-03-28 17:54:26
- * @LastEditTime: 2022-06-02 17:58:35
+ * @LastEditTime: 2022-06-09 15:52:13
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\store\message.ts
@@ -112,21 +112,22 @@ const message = defineStore({
         // 设置联系人数据
         setContactList(arr: [[], []]) {
             this.contactList = arr;
-            this.accounts.forEach((item) => {
-                // 缓存联系人数据
-                if (item.id == this.activeAccountInfo.id && !item.contactList) {
-                    // eslint-disable-next-line no-param-reassign
-                    item.contactList = arr;
-                }
-            });
+            // this.accounts.forEach((item) => {
+            //     // 缓存联系人数据
+            //     if (item.id == this.activeAccountInfo.id && arr.every((item) => item.length > 0)) {
+            //         // eslint-disable-next-line no-param-reassign
+            //         item.contactList = arr;
+            //     }
+            // });
         },
         // 切换子账号 当前聊天记录清除
         async setActiveAccountInfo(obj: userType) {
             this.init();
             this.activeAccountInfo = obj;
-            if (obj.contactList) {
-                this.contactList = obj.contactList;
-            }
+            // 取缓存数据
+            // if (obj.contactList) {
+            //     this.contactList = obj.contactList;
+            // }
         },
         async addChatList(obj: msgType) {
             this.chatList.push(obj);
@@ -137,7 +138,6 @@ const message = defineStore({
         },
         // 添加聊天记录
         async setChatList(arr: msgType[]) {
-            console.log(arr);
             this.chatList.unshift(...arr);
         },
         // 添加新的聊天窗口
@@ -178,9 +178,20 @@ const message = defineStore({
         },
         // 接收聊天数据
         // eslint-disable-next-line default-param-last
-        receiveChat(obj: receiveChatT, weChatId = '', cb: Function) {
+        receiveChat(obj: receiveChatT | msgType, weChatId = '', cb: Function) {
+            // 添加未读消息数
+            if (weChatId) {
+                this.accounts.forEach((item, index) => {
+                    if (item.id == weChatId) {
+                        this.accounts[index].offNumTatal = obj.offLineNumTotal;
+                    }
+                });
+            }
+            console.log(weChatId !== this.activeAccountInfo.id);
+
+            if (weChatId !== this.activeAccountInfo.id) return;
             const is = this.contactList[0].findIndex((item) => item.conversationId == obj.conversationId);
-            const objData: receiveChatT = is != -1 ? this.contactList[0].splice(is, 1)[0] : obj;
+            const objData: receiveChatT = is !== -1 ? this.contactList[0].splice(is, 1)[0] : obj;
             flatten(this.contactList[1].map((item: any) => item.children)).forEach((item: userInfo) => {
                 if (item.conversationId == objData.conversationId) {
                     this.contactList[0].unshift({
@@ -194,14 +205,6 @@ const message = defineStore({
             if (this.activeId == obj.conversationId) {
                 this.addChatList(obj);
                 cb();
-                return;
-            }
-            if (weChatId) {
-                this.accounts.forEach((item, index) => {
-                    if (item.id == weChatId) {
-                        this.accounts[index].offNumTatal = obj.offLineNumTotal;
-                    }
-                });
             }
         },
         // 设置上传参数信息
@@ -214,8 +217,11 @@ const message = defineStore({
             });
         },
         // 修改消息成功状态
-        editMsg(obj: msgType) {
+        editMsg(obj: msgType, weChatId: string) {
+            console.log(obj);
+            if (this.userData.conversationId !== obj.conversationId) return this.receiveChat(obj, weChatId, () => null);
             if (this.chatList.some((item) => item.msgId == obj.msgId)) {
+                // 聊天列表有的情况
                 this.chatList.forEach((item, index) => {
                     if (item.msgId == obj.msgId) {
                         this.chatList[index] = obj;
