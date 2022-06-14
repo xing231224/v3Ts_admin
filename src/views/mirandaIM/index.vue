@@ -1,11 +1,3 @@
-<!--
- * @Author: your name
- * @Date: 2022-03-21 14:09:09
- * @LastEditTime: 2022-06-09 15:48:04
- * @LastEditors: xing 1981193009@qq.com
- * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- * @FilePath: \v3-ts_demo\src\views\mirandaIM\index.vue
--->
 <template>
     <el-container>
         <el-header height="auto" style="font-size: 14px; border-bottom: 1px solid #e5e7eb">
@@ -116,20 +108,7 @@ const handleClose = () => {
     state.imgBase64 = '';
     state.msgType = '';
 };
-
 const chatContent = ref();
-// 判断url后缀名是否是视频格式的
-// const isVideo = computed(() => {
-//     return (url: any) => {
-//         const last = url.substring(url.lastIndexOf('.'));
-//         if (last == '.png' || last == '.jpg' || last == '.jpeg' || last == '.jfif') {
-//             return false;
-//         }
-//         if (last == '.mp4' || last == '.mov' || last == '.m4v' || last == '.wmv') {
-//             return true;
-//         }
-//     };
-// });
 const openDialog = (bool: boolean, url: string, msgType: string) => {
     state.dialogVisible = bool;
     fileUrl.value = url;
@@ -197,9 +176,9 @@ $websocket.getWebSocketMsg((obj: any) => {
         case '4':
             myMessage.editMsg(obj.data, obj.weChatId);
             // 添加消息 滚动条位置
-            setTimeout(() => {
+            nextTick(() => {
                 chatContent.value?.setScrollHeight();
-            }, 500);
+            });
             break;
         // 当前窗口聊天记录
         case '6':
@@ -210,10 +189,13 @@ $websocket.getWebSocketMsg((obj: any) => {
                 chatContent.value.chatStatus(false);
                 return;
             }
+            /* eslint-disable no-case-declarations */
+            const firstChil = document.querySelector('.message')?.firstElementChild as HTMLElement;
+            const top = firstChil ? firstChil.offsetTop * obj.data.length * 2 : 0;
+            nextTick(() => {
+                chatContent.value.setScrollHeight(top);
+            });
             myMessage.setChatList(obj.data);
-            setTimeout(() => {
-                chatContent.value.setScrollHeight();
-            }, 500);
             break;
         //  外部联系人
         case '7':

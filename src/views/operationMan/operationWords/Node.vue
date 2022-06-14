@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-04-06 12:01:42
- * @LastEditTime: 2022-05-23 15:21:05
+ * @LastEditTime: 2022-06-14 14:32:17
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\verbalTRStock\Processnode.vue
@@ -45,7 +45,7 @@
                     @contextmenu.prevent="delBranch(index)"
                 >
                     <el-popover v-if="isPre" trigger="click" placement="bottom">
-                        <Select :data-obj="branchList[index]" @change-name="changeData"></Select>
+                        <Select ref="selectRef" :data-obj="branchList[index]" @change-name="changeData"></Select>
                         <template #reference>
                             <span style="position: relative; top: -4px; cursor: pointer; padding: 6px 4px">{{
                                 item.name
@@ -101,12 +101,14 @@ import { createNode, delNode, delBranchNode } from '@/api/modules/operationMang/
 
 const {
     proxy: { $tips, $plumbIns },
+    proxy,
 } = getCurrentInstance() as any;
 const uuid = v4;
 const emit = defineEmits(['getInfo', 'delNodeFn', 'mouseup', 'delConnect']);
 // eslint-disable-next-line vue/require-prop-types
 const props = defineProps(['dataObj', 'scenariosInfo', 'isPreserve', 'token']);
 const upLoad = ref();
+const selectRef = ref();
 const videoPlay = ref();
 const state = reactive<Record<string, any>>({
     dialogVisible: false,
@@ -282,10 +284,10 @@ function affirm() {
             } else {
                 res.data.data.branchList.forEach((item: { keyword: any; id: string }, index: string | number) => {
                     state.branchList[index].keyword = item.keyword;
-                    // editId(
-                    //     `node_tags${state.branchList[index].id}`,
-                    //     `node_tags${item.id}`
-                    // );
+                    editId(`node_tags${state.branchList[index].id}`, `node_tags${item.id}`);
+                    nextTick(() => {
+                        console.log(state.branchList);
+                    });
                 });
             }
             state.branchList = res.data.data.branchList;
@@ -367,9 +369,27 @@ function getEndpointInfo() {
         obj.branchList = [];
         state.EndpointList.push({ id: `node_main${state.nodeObj.id}` });
         state.branchList.forEach((item: any) => {
+            console.log(item.id);
+            console.log(proxy.$refs.selectRef);
+            console.log(
+                proxy.$refs.selectRef.filter((row: { tagsObj: { tagsId: any } }) => row.tagsObj.tagsId == item.id),
+            );
             state.EndpointList.push({ id: `node_tags${item.id}` });
-            obj.branchList.push({ id: item.id, name: item.name, nextFlowId: '' });
+            obj.branchList.push({
+                id: item.id,
+                name: item.name,
+                nextFlowId: '',
+                keyword: proxy.$refs.selectRef
+                    .filter((row: { tagsObj: { tagsId: any } }) => row.tagsObj.tagsId == item.id)[0]
+                    .tagsObj.list.value.map((row: { name: any }) => row.name)
+                    .join(','),
+            });
         });
+        obj.vos = upLoad.value
+            ? upLoad.value.fileList.map((item: { realurl: any }) => {
+                  return { realurl: item.realurl };
+              })
+            : JSON.parse(props.dataObj.vpath);
     }
     state.EndpointList.forEach((item: any, index: number) => {
         const data = $plumbIns.getEndpoints(item.id)[0].connections[0] || '';

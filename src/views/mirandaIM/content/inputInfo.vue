@@ -70,11 +70,12 @@ watch(
 );
 
 const inputBoxFn = (e: InputEvent) => {
+    console.log(e);
     if (e.data == '@') {
         // 群聊@成员
         // 获取光标位置
-        console.log(window.getSelection());
-        console.log(document.createRange());
+        // console.log(window.getSelection());
+        // console.log(document.createRange());
     }
 };
 // 文本消息

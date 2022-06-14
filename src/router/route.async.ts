@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-02-12 15:53:45
- * @LastEditTime: 2022-05-17 17:22:55
+ * @LastEditTime: 2022-06-14 10:51:13
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \vitecamp\src\router\route.async.ts
@@ -9,7 +9,7 @@
 // 需要鉴权的业务路由
 import { RouteRecordRaw } from 'vue-router';
 
-const Layout = () => import("@/views/Layout/index.vue");
+const Layout = () => import('@/views/Layout/index.vue');
 // const _import = (path: string) => import(`../views/${path}.vue`)
 const asyncRoutes: Array<RouteRecordRaw> = [
     {
@@ -24,17 +24,18 @@ const asyncRoutes: Array<RouteRecordRaw> = [
             title: '首页',
             icon: 'dashboard',
         },
-        children: [{
-            path: '',
-            component: () => import('@/views/home/index.vue'),
-
-        }]
+        children: [
+            {
+                path: '',
+                component: () => import('@/views/home/index.vue'),
+            },
+        ],
     },
     {
         path: '/operationMan',
         name: 'operationMan',
         component: Layout,
-        redirect: "/operationMan/operationWords",
+        redirect: '/operationMan/operationWords',
         meta: {
             title: '话术管理',
             keepAlive: true,
@@ -47,7 +48,7 @@ const asyncRoutes: Array<RouteRecordRaw> = [
                     title: '话术设置',
                     icon: 'swagger',
                 },
-                name: "operationWords",
+                name: 'operationWords',
                 component: () => import('@/views/operationMan/operationWords/index.vue'),
             },
             {
@@ -56,20 +57,19 @@ const asyncRoutes: Array<RouteRecordRaw> = [
                     title: '知识库',
                     icon: 'swagger',
                 },
-                name: "knowledgeBase",
+                name: 'knowledgeBase',
                 component: () => import('@/views/operationMan/knowledgeBase/index.vue'),
             },
-            {
-                path: 'verbalTrickPush',
-                meta: {
-                    title: '话术推送',
-                    icon: 'swagger',
-                },
-                name: "verbalTrickPush",
-                component: () => import('@/views/operationMan/verbalTrickPush/index.vue'),
-            }
-        ]
-
+            // {
+            //     path: 'verbalTrickPush',
+            //     meta: {
+            //         title: '话术推送',
+            //         icon: 'swagger',
+            //     },
+            //     name: "verbalTrickPush",
+            //     component: () => import('@/views/operationMan/verbalTrickPush/index.vue'),
+            // }
+        ],
     },
     {
         path: '/mirandaIM',
@@ -85,8 +85,7 @@ const asyncRoutes: Array<RouteRecordRaw> = [
                 path: '',
                 component: () => import('@/views/mirandaIM/index.vue'),
             },
-        ]
-
+        ],
     },
     {
         path: '/setting',
@@ -103,7 +102,7 @@ const asyncRoutes: Array<RouteRecordRaw> = [
                     title: '聊天设置',
                     icon: 'swagger',
                 },
-                name: "liaotSet",
+                name: 'liaotSet',
                 component: () => import('@/views/setting/liaotSet/index.vue'),
             },
             {
@@ -112,11 +111,25 @@ const asyncRoutes: Array<RouteRecordRaw> = [
                     title: '手机设置',
                     icon: 'swagger',
                 },
-                name: "iPhoneSet",
+                name: 'iPhoneSet',
                 component: () => import('@/views/setting/iPhoneSet/index.vue'),
             },
-        ]
-
+        ],
+    },
+    {
+        path: '/clientHandle',
+        name: 'clientHandle',
+        component: Layout,
+        meta: {
+            title: '客户端操作',
+            icon: 'dashboard',
+        },
+        children: [
+            {
+                path: '',
+                component: () => import('@/views/clientHandle/index.vue'),
+            },
+        ],
     },
 ];
 

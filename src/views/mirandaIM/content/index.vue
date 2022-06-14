@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-25 10:39:43
- * @LastEditTime: 2022-06-09 15:38:45
+ * @LastEditTime: 2022-06-11 10:13:51
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\mirandaIM\content\index.vue
@@ -27,7 +27,7 @@
                 <ul class="message flex-col">
                     <template v-for="item in chatList" :key="item.sendTimeStamp">
                         <li :class="item.sendType == '0' ? 'opposite' : 'me'">
-                            <div :class="item.sendType == '0' ? 'flex' : 'avatar_info'">
+                            <div :class="item.sendType == '0' ? 'flex' : 'avatar_info'" style="margin-bottom: 4px">
                                 <el-avatar
                                     shape="square"
                                     :size="20"
@@ -40,7 +40,14 @@
                                             : myMessage.activeAccountInfo.avatorUrl
                                     "
                                 />
-                                <span class="juz" style="margin: 0 10px">{{
+                                <el-tag
+                                    v-if="item.telType == 1"
+                                    size="small"
+                                    style="margin-right: 10px; padding: 0 2px"
+                                    type="danger"
+                                    >话术</el-tag
+                                >
+                                <span class="juz" :style="item.telType == 1 ? `margin:0 5px` : 'margin: 0 10px'">{{
                                     item.sendType == '0'
                                         ? item.conversationId[0] == 'R'
                                             ? item.senderNickName
@@ -256,6 +263,7 @@ const { isHidden, contentMess, chatList, isMore } = toRefs(state);
 <style lang="scss" scoped>
 * {
     user-select: text;
+    font-family: 黑体 !important;
 }
 .content {
     width: 100%;

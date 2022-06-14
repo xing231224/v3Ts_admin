@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-30 14:17:46
- * @LastEditTime: 2022-05-19 15:14:33
+ * @LastEditTime: 2022-06-14 09:47:33
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\verbalTRStock\index.vue
@@ -52,7 +52,7 @@
                 </div>
                 <div class="diagramContainer-warp">
                     <div class="diagramContainer_content" @mousemove="mousemoveHandler">
-                        <div v-if="list.length != 0" id="diagramContainer">
+                        <div v-if="listShow" id="diagramContainer">
                             <Node
                                 v-for="item in list"
                                 :key="item.id"
@@ -173,8 +173,8 @@ const state = reactive<{ [propName: string]: any }>({
     newTrickName: '',
     isPreserve: false, // 是否保存
     contentPosition: {
-        left: null,
-        top: null,
+        left: -3000,
+        top: -3000,
     },
     moveDataelse: {
         x: null,
@@ -197,7 +197,13 @@ const state = reactive<{ [propName: string]: any }>({
     eventFlag: false,
     Loop: null, // 长按
     countDownTime: null, // 倒计时
+    listShow: true,
 });
+const getQiNiuToken = (): void => {
+    qiNiuToken().then((res: { data: { data: null } }) => {
+        state.updatatoken = res.data.data;
+    });
+};
 const scenariosInfoFn = computed(() => {
     let scenariosInfo = {};
     state.trickList.forEach((item: any, index: number) => {
@@ -351,32 +357,44 @@ function drogInit() {
 }
 // 选择话术
 function selectCard(index: number) {
+    // eslint-disable-next-line no-use-before-define
+    if (cardIndex.value == index) return;
     const loading = ElLoading.service({
         lock: true,
         text: 'Loading',
         background: 'rgba(0, 0, 0, 0.7)',
         target: '#NodeRelation',
     });
+    state.scenariosId = '';
     state.cardIndex = index;
     state.list = [];
+    state.listShow = false;
     state.trickList.forEach((item: any, index: number) => {
         if (index === state.cardIndex) {
             state.scenariosId = item.id;
         }
     });
+    if (!state.scenariosId) {
+        loading.close();
+        nextTick(() => {
+            state.listShow = true;
+        });
+        return;
+    }
     getNodeRelation(state.scenariosId).then((res) => {
         if (res.data.status === 200) {
             state.list = res.data.data || [];
             $tips('success', '获取成功！！！');
             nextTick(() => {
                 drogInit();
-                // eslint-disable-next-line no-use-before-define
                 getQiNiuToken();
             });
             loading.close();
+            state.listShow = true;
         } else {
             $tips('error', res.data.msg);
             loading.close();
+            state.listShow = true;
         }
     });
 }
@@ -479,6 +497,7 @@ function drog() {
         return false; // 标准浏览器的默认行为
     });
 }
+
 const searchAffirm = () => {
     const loadingInstance = ElLoading.service({
         lock: true,
@@ -535,7 +554,7 @@ const searchAffirm = () => {
 // }
 // 查询话术
 function searchScenar() {
-    sreachScenarios({ memberId: state.userInfo.id }).then((res) => {
+    sreachScenarios({}).then((res) => {
         if (res.data.status === 200) {
             state.trickList = res.data.data;
         } else {
@@ -546,10 +565,11 @@ function searchScenar() {
 // 添加话术 和 编辑
 function addTrick() {
     if (!state.trickName) return $tips('warning', '请输入话术名称！！！');
+    // console.log(state.userInfo);
     if (state.dialogType === 'add') {
         const obj = {
             name: state.trickName,
-            memberId: state.userInfo.id,
+            // memberId: state.userInfo?.id,
         };
         createScenarios(obj).then((res) => {
             if (res.data.status === 200) {
@@ -665,6 +685,7 @@ function windowMouseup() {
                 return;
             }
             console.log(btnT - topP + state.movePosition.y, btnL - leftP + state.movePosition.x);
+            console.log(state.contentPosition);
 
             state.list.push({
                 id: state.list.length,
@@ -721,11 +742,6 @@ const mousemoveHandler = (event: any) => {
         };
     }
 };
-function getQiNiuToken() {
-    qiNiuToken().then((res: { data: { data: null } }) => {
-        state.updatatoken = res.data.data;
-    });
-}
 
 watchEffect(() => {
     if (state.list.length == 0) {
@@ -781,6 +797,7 @@ const {
     trickList,
     updatatoken,
     movePosition,
+    listShow,
 } = toRefs(state);
 </script>
 
@@ -859,8 +876,10 @@ const {
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
-
             &::v-deep(.z_index) {
+                z-index: 22 !important;
+            }
+            &::v-deep(.jtk-connector) {
                 z-index: 22 !important;
             }
         }

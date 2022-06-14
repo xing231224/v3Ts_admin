@@ -1,8 +1,8 @@
 <!--
  * @Author: your name
  * @Date: 2022-04-07 10:23:31
- * @LastEditTime: 2022-04-13 10:19:30
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2022-06-14 11:33:01
+ * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\verbalTRStock\Select.vue
 -->
@@ -11,18 +11,33 @@
         <div class="el-select-dropdown__wrap el-scrollbar__wrap" style="margin-bottom: -17px; margin-right: -17px">
             <ul class="el-scrollbar__view el-select-dropdown__list" style="position: relative">
                 <!---->
-                <li v-for="(item, index) in list" :key="item.id" class="el-select-dropdown__item"
-                    @dblclick.stop="isEdit && index == 0 ? changeInp() : null">
-                    <el-input v-if="isEdit && isInput" ref="saveInput" v-model="item.name" class="input-new-tag"
-                        @keyup.enter="handleInput(item)" />
+                <li
+                    v-for="(item, index) in list"
+                    :key="item.id"
+                    class="el-select-dropdown__item"
+                    @dblclick.stop="isEdit && index == 0 ? changeInp() : null"
+                >
+                    <el-input
+                        v-if="isEdit && isInput"
+                        ref="saveInput"
+                        v-model="item.name"
+                        class="input-new-tag"
+                        @keyup.enter="handleInput(item)"
+                    />
                     <el-tag class="tags" :closable="index == 0 ? false : true" @close="handleClose(item)">
                         <span>{{ item.name }}</span>
                     </el-tag>
                 </li>
                 <li class="el-select-dropdown__item">
-                    <el-input v-show="inputVisible" ref="saveTagInput" v-model="inputValue" class="input-new-tag"
-                        @keyup.enter="handleInputConfirm" />
-                    <el-button v-show="!inputVisible" class="button-new-tag" size="small" @click="showInput">+ New Tag
+                    <el-input
+                        v-show="inputVisible"
+                        ref="saveTagInput"
+                        v-model="inputValue"
+                        class="input-new-tag"
+                        @keyup.enter="handleInputConfirm"
+                    />
+                    <el-button v-show="!inputVisible" class="button-new-tag" size="small" @click="showInput"
+                        >+ New Tag
                     </el-button>
                 </li>
 
@@ -43,26 +58,27 @@
     </div>
 </template>
 
+<script setup lang="ts">
+import { updateBranchNode } from '@/api/modules/operationMang/operationword';
+import { deepCopy } from '@/utils/mineUtils';
 
-<script setup lang='ts'>
-import { updateBranchNode } from "@/api/modules/operationMang/operationword";
-import { deepCopy } from "@/utils/mineUtils";
-
-const { proxy: { $tips } } = getCurrentInstance() as any;
-const emit = defineEmits(['changeName'])
+const {
+    proxy: { $tips },
+} = getCurrentInstance() as any;
+const emit = defineEmits(['changeName']);
 // eslint-disable-next-line vue/require-prop-types
-const props = defineProps(['dataObj'])
-const saveInput = ref()
-const saveTagInput = ref()
+const props = defineProps(['dataObj']);
+const saveInput = ref();
+const saveTagInput = ref();
 const state = reactive({
     list: [] as any[],
     inputVisible: false,
-    inputValue: "",
+    inputValue: '',
     isEdit: false,
     isInput: false,
-    input: "",
-    memberId: "",
-})
+    input: '',
+    memberId: '',
+});
 function changeInp() {
     state.isInput = true;
     nextTick(() => {
@@ -73,7 +89,7 @@ function updataKeyWord(name = '', childName = '') {
     return new Promise<void>((resolve, reject) => {
         const arr = deepCopy(state.list);
         const obj = deepCopy(props.dataObj);
-        let keyword = arr.map((item: { name: any; }) => item.name);
+        let keyword = arr.map((item: { name: any }) => item.name);
         if (name) {
             obj.name = name;
         }
@@ -81,22 +97,22 @@ function updataKeyWord(name = '', childName = '') {
             keyword.splice(keyword.indexOf(childName), 1);
         }
         keyword.splice(0, 1);
-        keyword = keyword.join(",");
+        keyword = keyword.join(',');
         obj.keyword = keyword;
         updateBranchNode(obj).then((res: any) => {
             if (res.data.status === 200) {
-                $tips("success", res.data.msg);
+                $tips('success', res.data.msg);
                 resolve();
             } else {
-                $tips("error", res.data.msg);
+                $tips('error', res.data.msg);
                 reject();
             }
         });
     });
 }
-function handleInput(item: { name: any; }) {
+function handleInput(item: { name: any }) {
     state.isInput = false;
-    emit("changeName", item);
+    emit('changeName', item);
     updataKeyWord(item.name);
 }
 function showInput() {
@@ -115,7 +131,7 @@ function handleInputConfirm() {
     }
     updataKeyWord().then(() => {
         state.inputVisible = false;
-        state.inputValue = "";
+        state.inputValue = '';
     });
 }
 
@@ -126,25 +142,30 @@ function handleClose(item: any) {
 }
 
 onMounted(() => {
-    const arr = ["肯定", "否定", "没听清", "其他"];
+    const arr = ['肯定', '否定', '没听清', '其他'];
     state.isEdit = !arr.includes(props.dataObj.name);
     state.list.push({ id: 0, name: props.dataObj.name });
     // eslint-disable-next-line no-unused-expressions
     props.dataObj.keyword
-        ? props.dataObj.keyword.split(",").forEach((item: any, index: number) => {
-            state.list.push({
-                id: index + 1,
-                name: item,
-            });
-        })
+        ? props.dataObj.keyword.split(',').forEach((item: any, index: number) => {
+              state.list.push({
+                  id: index + 1,
+                  name: item,
+              });
+          })
         : null;
-})
+});
 
-
-const { list, isEdit, inputVisible, inputValue, isInput } = toRefs(state)
+const { list, isEdit, inputVisible, inputValue, isInput } = toRefs(state);
+defineExpose({
+    tagsObj: {
+        tagsId: props.dataObj.id,
+        list,
+    },
+});
 </script>
 
-<style lang='scss' scoped>
+<style lang="scss" scoped>
 .el-scrollbar {
     padding-bottom: 12px;
 }
@@ -166,9 +187,9 @@ const { list, isEdit, inputVisible, inputValue, isInput } = toRefs(state)
 }
 
 .resize-triggers,
-.resize-triggers>div,
+.resize-triggers > div,
 .contract-trigger:before {
-    content: " ";
+    content: ' ';
     display: block;
     position: absolute;
     top: 0;
@@ -179,7 +200,7 @@ const { list, isEdit, inputVisible, inputValue, isInput } = toRefs(state)
     z-index: -1;
 }
 
-.resize-triggers>div {
+.resize-triggers > div {
     background: #eee;
     overflow: auto;
 }

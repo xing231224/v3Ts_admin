@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-04-02 10:45:44
- * @LastEditTime: 2022-06-08 16:44:04
+ * @LastEditTime: 2022-06-10 09:38:03
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\components\InputBox\index.vue
@@ -11,14 +11,14 @@
         @keydown="inputKeyUp">
         <p>&nbsp;</p>
     </div> -->
-    <div ref="input_box" class="input_box" contenteditable="true" @input="inputVmodel" @keydown="inputKeyUp"></div>
+    <div ref="input_box" class="input_box" contenteditable="true" @keydown="inputKeyUp"></div>
 </template>
 
 <script setup lang="ts">
 const input_box = ref<HTMLDivElement>();
 // eslint-disable-next-line vue/require-prop-types
 const props = defineProps(['enter']);
-const emit = defineEmits(['input']);
+// const emit = defineEmits(['input']);
 // interface stateType {
 //     cursor: number
 //     position: Range | undefined
@@ -28,7 +28,7 @@ const emit = defineEmits(['input']);
 //     position: undefined,
 // })
 // const emit = defineEmits(['change', 'addContent',]);
-const inputVmodel = (e: Event) => emit('input', e);
+// const inputVmodel = (e: Event) => emit('input', e);
 
 // 设置光标位置
 function setCaretPosition(ctrl: Node | Text) {

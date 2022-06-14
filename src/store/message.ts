@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-03-28 17:54:26
- * @LastEditTime: 2022-06-09 15:52:13
+ * @LastEditTime: 2022-06-10 09:18:20
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\store\message.ts
@@ -187,8 +187,6 @@ const message = defineStore({
                     }
                 });
             }
-            console.log(weChatId !== this.activeAccountInfo.id);
-
             if (weChatId !== this.activeAccountInfo.id) return;
             const is = this.contactList[0].findIndex((item) => item.conversationId == obj.conversationId);
             const objData: receiveChatT = is !== -1 ? this.contactList[0].splice(is, 1)[0] : obj;

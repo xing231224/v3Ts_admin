@@ -2,7 +2,7 @@
  * @Author: xing 1981193009@qq.com
  * @Date: 2022-05-20 09:52:04
  * @LastEditors: xing 1981193009@qq.com
- * @LastEditTime: 2022-06-06 17:20:53
+ * @LastEditTime: 2022-06-10 14:30:41
  * @FilePath: \v3ts_admin\src\views\mirandaIM\verbalTR\transfer.vue
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
@@ -30,7 +30,7 @@
                 <div class="transfer-panel-content">
                     <el-scrollbar>
                         <el-checkbox-group v-model="checkedCities" @change="handleCheckedCitiesChange">
-                            <el-checkbox v-for="item in list" :key="item.indexId" :label="item.id">
+                            <el-checkbox v-for="item in list" :key="item.indexId" :label="item.conversationId">
                                 <div class="flex">
                                     <el-avatar size="small" :src="item.avatorUrl" />
                                     <div class="juz" style="margin-left: 4px">
@@ -71,7 +71,7 @@ import { Search } from '@element-plus/icons-vue';
 
 interface datatype {
     indexId: string | number;
-    id: string | number;
+    conversationId: string | number;
     name: string;
     avatorUrl: string;
 }
@@ -106,13 +106,13 @@ const handleCheckedCitiesChange = (value: string[]) => {
     isIndeterminate.value = checkedCount > 0 && checkedCount < props.data.length;
 };
 const handleCheckAllChange = (val: boolean) => {
-    checkedCities.value = val ? (props.data.map((item) => item.id) as string[]) : [];
+    checkedCities.value = val ? (props.data.map((item) => item.conversationId) as string[]) : [];
     isIndeterminate.value = false;
 };
 watch(checkedCities, (n) => {
     state.selectList = [];
     n.forEach((id) => {
-        state.selectList.push(...props.data.filter((item) => item.id == id));
+        state.selectList.push(...props.data.filter((item) => item.conversationId == id));
     });
 });
 watch(
@@ -123,6 +123,20 @@ watch(
         }
     },
     { immediate: true },
+);
+watch(
+    () => props.data,
+    (n) => {
+        if (n.length === 0) {
+            checkAll.value = false;
+            isIndeterminate.value = false;
+            checkedCities.value = [];
+            state.selectList = [];
+            state.list = [];
+        } else {
+            state.list = n;
+        }
+    },
 );
 defineExpose({
     state,

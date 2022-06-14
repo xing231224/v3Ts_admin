@@ -42,7 +42,7 @@
         </el-tabs>
         <template #footer>
             <span class="dialog-footer">
-                <el-button @click="dialogVisible = false">关闭</el-button>
+                <el-button @click="handleClose">关闭</el-button>
                 <el-button type="warning" @click="send()">发送</el-button>
             </span>
         </template>
@@ -74,7 +74,7 @@ const state = reactive({
     wechatList: {} as { internal: any[]; external: any[]; internalCache: any[]; externalCache: any[] },
 });
 const getScenarios = () => {
-    sreachScenarios({}).then((res) => {
+    sreachScenarios({ status: '1' }).then((res) => {
         state.scenariosList = res.data.data.map((item: any) => {
             return {
                 ...item,
@@ -95,7 +95,9 @@ const closeVerbal = () => {
     myMessage.setHiddenAside(true);
 };
 const send = () => {
-    const ids = proxy.$refs[state.activeWeChat].state.selectList.map((item: { id: string }) => item.id);
+    const ids = proxy.$refs[state.activeWeChat].state.selectList.map(
+        (item: { conversationId: string }) => item.conversationId,
+    );
     if (ids.length == 0) return $tips('warning', '请选择需要发送的好友！');
     const loadingInstance = ElLoading.service({
         lock: true,
@@ -104,12 +106,11 @@ const send = () => {
         target: document.querySelector('.dialogVisible') as HTMLElement,
     });
     const type = state.activeWeChat == 'internal' ? 1 : 2;
-
     sendScenarios({ scenarios: state.radioId, ids, type, wechatId: myMessage.activeAccountInfo.id }).then((res) => {
         if (res.data.status == 200) {
             $tips('success', res.data.msg);
             loadingInstance.close();
-            // state.dialogVisible = false;
+            state.dialogVisible = false;
         } else {
             $tips('error', res.data.msg);
             loadingInstance.close();
@@ -119,6 +120,12 @@ const send = () => {
 watch(
     () => myMessage.activeAccountInfo,
     (n) => {
+        state.wechatList = {
+            internal: [],
+            external: [],
+            internalCache: [],
+            externalCache: [],
+        };
         getWechatList(n.id).then((res) => {
             state.wechatList = res.data.data;
         });
