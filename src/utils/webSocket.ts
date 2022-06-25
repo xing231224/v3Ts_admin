@@ -10,17 +10,19 @@ import message from '@/store/message';
 import { getUserId } from '@/api/modules/login';
 
 const { protobuf, protoRoot } = $protobuf;
-
+let globalKey: string;
 interface msgType {
     key?: string;
     status: string;
     weChatId?: string | number;
+    state?: any;
     data?: any;
 }
 
 function initData(db: Function) {
+    globalKey = randomKey();
     const obj = {
-        key: randomKey(),
+        key: globalKey,
         status: '0',
         data: {},
     };
@@ -133,8 +135,9 @@ class WebSocketClass {
         if (!protoClass) return this.ws.send(msg);
         // msg.data = typeof msg.data == 'string' ? msg.data : JSON.stringify(msg.data) // data转JSON
         // 后端所需要的参数key
-        msg.key = randomKey();
-        if (message().activeAccountInfo.id && msg.status !== '1' && msg.status !== '0') {
+        msg.key = globalKey;
+        msg.data = msg.data ? msg.data : {};
+        if (message().activeAccountInfo.id && msg.status !== '1' && msg.status !== '0' && msg.status !== '10') {
             msg.weChatId = message().activeAccountInfo.id;
             msg.data.wechatId = message().activeAccountInfo.id;
         }

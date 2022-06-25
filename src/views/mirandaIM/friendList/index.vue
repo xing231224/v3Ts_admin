@@ -1,13 +1,4 @@
-<!--
- * @Author: your name
- * @Date: 2022-03-24 17:26:53
- * @LastEditTime: 2022-06-09 15:11:20
- * @LastEditors: xing 1981193009@qq.com
- * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- * @FilePath: \v3ts_admin\src\views\mirandaIM\friendList.vue
--->
 <template>
-    <!-- vue3页面 -->
     <div style="--el-color-primary: #f39c12" class="flex">
         <div class="box-card" style="text-align: center; z-index: 99">
             <el-tooltip content="添加子账号" placement="bottom" effect="light">
@@ -34,7 +25,7 @@
                     :trigger-on-focus="false"
                     clearable
                     class="input-round"
-                    placeholder="Please Input"
+                    placeholder="输入搜索好友"
                     @select="handleSelect"
                 >
                     <template #default="{ item }">
@@ -45,12 +36,10 @@
             <el-tabs v-model="activeName" stretch class="demo-tabs" :before-leave="beforeLeave">
                 <el-tab-pane v-for="(item, index) in tabsList" :key="item.name" :name="item.name">
                     <template #label>
-                        <!-- <div v-if="item.name == 'second'">
-                            <el-badge class="badge" :hidden="!messNum" :value="messNum">{{
-                                item.label + `(${needList[index]?.length})`
-                            }}</el-badge>
-                        </div> -->
-                        <span>{{ item.label }}</span>
+                        <div class="flex-center">
+                            <span class="juz svg_icon"><svg-icon :name="item.icon"></svg-icon></span>
+                            <span>{{ item.label }}</span>
+                        </div>
                     </template>
                     <List ref="contacts" :lists="needList[index]" :active="activeName" @handover="handover" />
                 </el-tab-pane>
@@ -82,10 +71,12 @@ const state = reactive({
         {
             label: '聊天列表',
             name: 'second',
+            icon: 'bubblesDots6',
         },
         {
             label: '联系人',
             name: 'third',
+            icon: 'lianxiren',
         },
     ],
     needList: [[], []] as [any[], any[]],
@@ -179,6 +170,14 @@ const { input2, tabsList, needList, activeName, isLoading } = toRefs(state);
 .badge {
     &::v-deep(.el-badge__content) {
         top: 10px;
+    }
+}
+
+.svg_icon {
+    font-size: 12px;
+    margin: 0 4px 0 0;
+    &::v-deep(.svg-icon) {
+        margin: 0 4px;
     }
 }
 </style>

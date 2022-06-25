@@ -14,14 +14,18 @@
 </template>
 
 <script setup lang="ts">
-
 const props = defineProps({
-    name: String as () => any,
-    label: String as () => any,
+    name: {
+        type: String,
+        required: true,
+    },
+    label: {
+        type: String,
+        required: true,
+    },
 });
 let tabActive = ref() as any;
 tabActive = inject('tabActive');
-
 </script>
 
 <style lang="scss" scoped>

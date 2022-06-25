@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2022-04-07 10:39:17
- * @LastEditTime: 2022-06-09 11:48:23
+ * @LastEditTime: 2022-06-23 16:05:15
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\utils\mineUtils.ts
@@ -24,6 +24,7 @@ const yasuobaoFile = new URL('../assets/fileType/wenjianleixing-yasuobao.png', i
 const yinpinFile = new URL('../assets/fileType/wenjianleixing-yinpin.png', import.meta.url).href;
 const wendangFile = new URL('../assets/fileType/wenjianleixing-wendang.png', import.meta.url).href;
 const wenbenFile = new URL('../assets/fileType/wenjianleixing-wenben.png', import.meta.url).href;
+const exeFile = new URL('../assets/fileType/wenjianleixing-exe.png', import.meta.url).href;
 
 function isObject(o: any) {
     return (
@@ -180,6 +181,8 @@ export function getSuffix(url: string): { icoURL: string; suffix: string } {
         icoURL = shipinFile;
     } else if (suffix == '.rar' || suffix == '.zip' || suffix == '.7z') {
         icoURL = yasuobaoFile;
+    } else if (suffix == '.exe') {
+        icoURL = exeFile;
     } else {
         // 未知文件类型
         icoURL = unknownFile;

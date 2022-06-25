@@ -23,8 +23,7 @@
             />
         </span>
     </div>
-    <!-- <div id="editor" @keyup.ctrl.enter="sendInfo" @paste="pasteIntercept($event)"></div> -->
-    <InputBox id="editor" ref="inpuBox" :enter="sendInfo" @input="inputBoxFn" />
+    <InputBox id="editor" ref="inpuBox" :enter="sendInfo" />
 </template>
 
 <script setup lang="ts">
@@ -54,8 +53,6 @@ const state = reactive({
     baseurl: 'http://pic.hzjiuwang.com',
     file: {} as File,
 });
-// 发送给最老辈组件的数据
-// const openDialog = inject('openDialog') as Function
 // 监听上传进度给父组件
 watch(
     () => state.filePercent,
@@ -69,15 +66,15 @@ watch(
     },
 );
 
-const inputBoxFn = (e: InputEvent) => {
-    console.log(e);
-    if (e.data == '@') {
-        // 群聊@成员
-        // 获取光标位置
-        // console.log(window.getSelection());
-        // console.log(document.createRange());
-    }
-};
+// const inputBoxFn = (e: InputEvent) => {
+//     console.log(e);
+//     if (e.data == '@') {
+//         // 群聊@成员
+//         // 获取光标位置
+//         // console.log(window.getSelection());
+//         // console.log(document.createRange());
+//     }
+// };
 // 文本消息
 const sendText = (text: string | null | undefined = '') => {
     const sendObj = {
@@ -125,8 +122,8 @@ function uploadFile(file: File, sendFile: any = {}) {
         next(res: { total: { percent: string } }) {
             // 上传进度
             state.filePercent = parseInt(res.total.percent, 10);
-            if (sendFile?.fileId) {
-                myMessage.setUploadInfo(sendFile.fileId, 'filePercent', parseInt(res.total.percent, 10));
+            if (sendFile?.fileIds) {
+                myMessage.setUploadInfo(sendFile.fileIds, 'filePercent', parseInt(res.total.percent, 10));
             }
             // 清空
             if (state.filePercent == 100) {
@@ -135,7 +132,7 @@ function uploadFile(file: File, sendFile: any = {}) {
         },
         // 接收上传错误信息
         error(err: any) {
-            myMessage.setUploadInfo(sendFile.fileId, 'isUpload', false);
+            myMessage.setUploadInfo(sendFile.fileIds, 'isUpload', false);
             console.log(err);
             $tips('error', err);
         },
@@ -145,24 +142,11 @@ function uploadFile(file: File, sendFile: any = {}) {
             state.fileURL = `${state.baseurl}/${res.key}`;
             // 处理文件发送字段
             /* eslint-disable no-param-reassign */
-            switch (sendFile.msgType) {
-                // 图片
-                case '402':
-                    sendFile.imageUrl = `${state.baseurl}/${res.key}`;
-                    break;
-                // 视频
-                case '403':
-                    sendFile.mp4Url = `${state.baseurl}/${res.key}`;
-                    break;
-                // 文件
-                default:
-                    sendFile.fileUrl = `${state.baseurl}/${res.key}`;
-                    break;
-            }
+            sendFile.url = `${state.baseurl}/${res.key}`;
             // 发送消息给后端
             emit('success-upload', { fileURL: state.fileURL, file });
-            myMessage.setUploadInfo(sendFile.fileId, 'isUpload', true);
-            myMessage.setUploadInfo(sendFile.fileId, 'content', state.fileURL);
+            myMessage.setUploadInfo(sendFile.fileIds, 'isUpload', true);
+            myMessage.setUploadInfo(sendFile.fileIds, 'content', state.fileURL);
             // 发送到后端
             const obj = {
                 status: isVideo(file.name) == 'img' ? '402' : isVideo(file.name) == 'video' ? '403' : '405',
@@ -213,7 +197,7 @@ const fileChange = (e: any) => {
     const sendFile = {
         conversationId: myMessage.userData.conversationId,
         fileName: file.name, // 文件名
-        fileId: file.size + new Date().getTime(),
+        fileIds: file.size + new Date().getTime(),
         filePercent: 0, // 上传进度
         fileSize: file.size, // 文件大小
         msgType: isVideo(file.name) == 'img' ? '402' : isVideo(file.name) == 'video' ? '403' : '405', // 文件类型
@@ -239,6 +223,7 @@ const sendInfo = () => {
             if (item.nodeName == 'IMG') {
                 // eslint-disable-next-line no-new
                 fileChange(new BaseFile((item as HTMLImageElement).src));
+                inpuBox.value.clearContent();
             } else {
                 if ((item as HTMLElement).innerHTML == '&nbsp;') return;
                 sendText(item.textContent);

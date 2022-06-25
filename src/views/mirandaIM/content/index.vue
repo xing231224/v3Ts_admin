@@ -1,14 +1,4 @@
-<!--
- * @Author: your name
- * @Date: 2022-03-25 10:39:43
- * @LastEditTime: 2022-06-11 10:13:51
- * @LastEditors: xing 1981193009@qq.com
- * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- * @FilePath: \v3ts_admin\src\views\mirandaIM\content\index.vue
--->
-
 <template>
-    <!-- vue3页面 -->
     <el-container class="content">
         <el-header height="auto" class="flex-sb" style="padding: 0; border-bottom: 1px solid #e5e7eb">
             <p>{{ contentMess.name }}</p>
@@ -34,20 +24,23 @@
                                     style="display: block"
                                     :src="
                                         item.sendType == '0'
-                                            ? contentMess.avatorUrl
-                                                ? contentMess.avatorUrl
-                                                : `https://imgsa.baidu.com/forum/pic/item/023b5bb5c9ea15ce85b34b6eb1003af33a87b27c.jpg`
+                                            ? item.conversationId[0] == 'R'
+                                                ? filterAvatar(item.senderId)
+                                                : contentMess.avatorUrl
                                             : myMessage.activeAccountInfo.avatorUrl
                                     "
                                 />
-                                <el-tag
-                                    v-if="item.telType == 1"
-                                    size="small"
-                                    style="margin-right: 10px; padding: 0 2px"
-                                    type="danger"
-                                    >话术</el-tag
-                                >
-                                <span class="juz" :style="item.telType == 1 ? `margin:0 5px` : 'margin: 0 10px'">{{
+                                <template v-if="item.telType == 1">
+                                    <el-tag size="small" style="margin-right: 10px; padding: 0 2px" type="danger"
+                                        >话术</el-tag
+                                    >
+                                </template>
+                                <template v-else-if="item.telType == 2">
+                                    <el-tag size="small" style="margin-right: 10px; padding: 0 2px" type="success"
+                                        >知识库</el-tag
+                                    >
+                                </template>
+                                <span class="juz" :style="`margin:0 ${item.telType == 1 ? '5px' : '10px'}`">{{
                                     item.sendType == '0'
                                         ? item.conversationId[0] == 'R'
                                             ? item.senderNickName
@@ -56,11 +49,7 @@
                                 }}</span>
                                 <span class="juz">{{ parseTime(item.sendTimeStamp, `{y}/{m}/{d} {h}:{i}`) }}</span>
                             </div>
-                            <div
-                                :class="
-                                    item.sendType == '0' ? 'opposite_content content-text' : 'me_content content-text'
-                                "
-                            >
+                            <div :class="`content-text ${item.sendType == '0' ? 'opposite_content' : 'me_content'} `">
                                 <!-- 文本 -->
                                 <div v-if="item.msgType == '401'" class="flex" style="background-color: #fff">
                                     <div v-if="item.ack" style="display: flex; align-items: end; padding: 0 5px">
@@ -87,76 +76,94 @@
                                     class="flex"
                                     style="background-color: #fff"
                                 >
-                                    <el-progress
-                                        v-if="
-                                            (item.fileId && item.filePercent !== 100 && item.filePercent !== 0) ||
-                                            item.ack == '0'
-                                        "
-                                        :percentage="item.filePercent"
-                                        type="circle"
-                                        :stroke-width="2"
-                                        :width="14"
-                                        :status="item.isUpload && item.filePercent == 100 ? 'success' : 'exception'"
-                                        :show-text="false"
-                                        :color="colors"
-                                        style="display: flex; align-items: end; padding: 0 5px"
-                                    />
-                                    <div v-else style="display: flex; align-items: end; padding: 0 5px">
-                                        <CircleCheck
-                                            v-if="(item.isUpload && item.filePercent == 100) || item.ack == '1'"
-                                            style="width: 14px; height: 14px"
-                                            color="green"
-                                        />
-                                        <CircleClose
-                                            v-if="item.fileId && item.isUpload == false && item.filePercent !== 100"
-                                            style="width: 14px; height: 14px"
-                                            color="red"
-                                        />
+                                    <div v-if="item.ack" style="display: flex; align-items: end; padding: 0 5px">
+                                        <template
+                                            v-if="
+                                                (item.fileIds && item.filePercent !== 100 && item.filePercent !== 0) ||
+                                                item.ack == '0'
+                                            "
+                                        >
+                                            <el-progress
+                                                :percentage="item.filePercent"
+                                                type="circle"
+                                                :stroke-width="2"
+                                                :width="14"
+                                                :status="
+                                                    item.isUpload && item.filePercent == 100 ? 'success' : 'exception'
+                                                "
+                                                :show-text="false"
+                                                :color="colors"
+                                                style="display: flex; align-items: end; padding: 0 5px"
+                                            />
+                                        </template>
+                                        <template v-else>
+                                            <CircleCheck
+                                                v-if="(item.isUpload && item.filePercent == 100) || item.ack == '1'"
+                                                style="width: 14px; height: 14px"
+                                                color="green"
+                                            />
+                                            <CircleClose
+                                                v-if="
+                                                    item.fileIds && item.isUpload == false && item.filePercent !== 100
+                                                "
+                                                style="width: 14px; height: 14px"
+                                                color="red"
+                                            />
+                                        </template>
                                     </div>
                                     <!-- 图片 -->
-                                    <img
+                                    <template v-if="item.msgType == '402' || item.msgType == '408'">
+                                        <viewer :options="{ navbar: false, title: false }" rebuild :images="[item.url]">
+                                            <img :src="item.url" width="175" style="cursor: pointer" alt="" />
+                                        </viewer>
+                                    </template>
+                                    <!-- <img
                                         v-if="item.msgType == '402' || item.msgType == '408'"
                                         width="175"
                                         style="cursor: pointer"
-                                        :src="item.imageUrl || item.url"
-                                        @click="
-                                            item.msgType == '408' ? null : playVideo(true, item.imageUrl, item.msgType)
-                                        "
-                                    />
-                                    <div
-                                        v-else-if="item.msgType == '405'"
-                                        class="file-content"
-                                        @click="downFile(item.fileUrl, item.fileName)"
-                                    >
-                                        <div class="flex">
-                                            <span class="juz">{{ item.fileName }}</span>
-                                            <div class="juz">
-                                                <img
-                                                    width="35"
-                                                    style="transform: scale(1.5)"
-                                                    :src="getSuffix(item.fileName).icoURL"
-                                                    alt=""
-                                                />
+                                        :src="item.url"
+                                        @click="item.msgType == '408' ? null : playVideo(true, item.url, item.msgType)"
+                                    /> -->
+                                    <template v-else-if="item.msgType == '405'">
+                                        <div
+                                            class="file-content"
+                                            @click="item.url ? downFile(item.url, item.fileName) : null"
+                                        >
+                                            <div class="flex">
+                                                <span
+                                                    class="juz"
+                                                    style="word-wrap: break-word; word-break: break-all"
+                                                    >{{ item.fileName }}</span
+                                                >
+                                                <div class="juz" style="margin: 0 4px">
+                                                    <img
+                                                        width="35"
+                                                        style="transform: scale(1.5)"
+                                                        :src="getSuffix(item.fileName).icoURL"
+                                                        alt=""
+                                                    />
+                                                </div>
                                             </div>
+                                            <p class="flex-sb">
+                                                <span>{{ getfilesize(item.fileSize) }}</span>
+                                                <span v-if="!item.url" style="color: red">注:在大文件列表下载</span>
+                                            </p>
                                         </div>
-                                        <p>{{ getfilesize(item.fileSize) }}</p>
-                                    </div>
+                                    </template>
                                     <!-- 视频 -->
-                                    <div
-                                        v-else-if="item.msgType == '403'"
-                                        class="video-content"
-                                        @click="playVideo(true, item.mp4Url, item.msgType)"
-                                    >
-                                        <video :src="item.mp4Url"></video>
-                                        <span>
-                                            <i-ph-play-circle-thin />
-                                        </span>
-                                    </div>
+                                    <template v-else-if="item.msgType == '403'">
+                                        <div class="video-content" @click="playVideo(true, item.url, item.msgType)">
+                                            <video :src="item.url"></video>
+                                            <span>
+                                                <i-ph-play-circle-thin />
+                                            </span>
+                                        </div>
+                                    </template>
                                 </div>
                                 <!-- 语音 -->
-                                <div v-else-if="item.msgType == '404'">
-                                    <PlayAduio :url="item.voiceUrl" :is-play="false" :keys="item.sendTimeStamp" />
-                                </div>
+                                <template v-else-if="item.msgType == '404'">
+                                    <PlayAduio :url="item.url" :is-play="false" :keys="item.sendTimeStamp" />
+                                </template>
                             </div>
                         </li>
                     </template>
@@ -164,7 +171,7 @@
             </el-scrollbar>
         </el-main>
         <el-footer height="200px" class="footer">
-            <inputInfoVue @get-progress="getProgress" @success-upload="successUpload" @success-send="setScrollHeight" />
+            <inputInfoVue @success-send="setScrollHeight" />
         </el-footer>
     </el-container>
 </template>
@@ -200,25 +207,24 @@ const openVerbal = () => {
     myMessage.setHiddenAside(false);
 };
 // 获取file信息以及上传进度 上传 成功 之后的url
-const getProgress = (filePercent: number) => {
-    console.log(filePercent, 11111);
-};
-const successUpload = (obj: { file: File; fileURL: string }) => {
-    console.log(obj);
-};
+// const getProgress = (filePercent: number) => {
+//     console.log(filePercent, 11111);
+// };
+// const successUpload = (obj: { file: File; fileURL: string }) => {
+//     console.log(obj);
+// };
 const setScrollHeight = (number = 0) => {
     const content_warp = document.getElementsByClassName('content_warp')[0];
     // 默认到底部
     nextTick(() => {
         if (content_warp) {
             scroll.value?.setScrollTop(
-                number || (scroll.value.resize$ as HTMLElement).clientHeight - content_warp.clientHeight,
+                number || ((scroll.value.resize$ as HTMLElement).clientHeight - content_warp.clientHeight) * 2,
             );
         }
     });
 };
 const scrollFn = (obj: { scrollTop: number }) => {
-    // const content_warp = document.getElementsByClassName('content_warp')[0];
     state.scrollTop = obj.scrollTop;
     // 拉取历史消息
     if (obj.scrollTop == 0 && state.chatList.length > 0) {
@@ -226,14 +232,18 @@ const scrollFn = (obj: { scrollTop: number }) => {
             status: '6',
             data: {
                 conversationId: state.contentMess.conversationId,
-                sendTimeStamp: state.chatList[0].sendTimeStamp,
+                sendTimeStamp: state.chatList[0].sendTimeStamp - 1,
                 size: 10,
             },
         });
-        // scroll.value?.setScrollTop(content_warp.clientHeight);
     }
 };
-
+const filterAvatar = (id: string) => {
+    const filterList = (myMessage.getContactAll as any[]).filter((row) => row.id == id);
+    return filterList.length > 0
+        ? filterList[0].avatorUrl
+        : 'https://imgsa.baidu.com/forum/pic/item/023b5bb5c9ea15ce85b34b6eb1003af33a87b27c.jpg';
+};
 // 拉取聊天消息的状态操作
 const chatStatus = (show: boolean) => {
     // 更多消息的状态显示
@@ -265,6 +275,7 @@ const { isHidden, contentMess, chatList, isMore } = toRefs(state);
     user-select: text;
     font-family: 黑体 !important;
 }
+
 .content {
     width: 100%;
     height: 100%;
@@ -273,6 +284,10 @@ const { isHidden, contentMess, chatList, isMore } = toRefs(state);
     .wh_16 {
         width: 16px;
         height: 16px;
+
+        &:hover {
+            color: #f39c12;
+        }
     }
 
     p {
@@ -328,6 +343,7 @@ const { isHidden, contentMess, chatList, isMore } = toRefs(state);
                 float: right;
             }
         }
+
         .content-text {
             max-width: 70%;
             // &::before {
@@ -355,6 +371,7 @@ const { isHidden, contentMess, chatList, isMore } = toRefs(state);
         &:hover {
             background-color: rgb(247, 243, 243);
         }
+
         &::v-deep(.el-progress__text) {
             min-width: 35px;
             font-size: 12px !important;

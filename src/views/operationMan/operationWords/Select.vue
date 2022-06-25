@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-04-07 10:23:31
- * @LastEditTime: 2022-06-14 11:33:01
+ * @LastEditTime: 2022-06-15 09:26:05
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\verbalTRStock\Select.vue
@@ -76,8 +76,6 @@ const state = reactive({
     inputValue: '',
     isEdit: false,
     isInput: false,
-    input: '',
-    memberId: '',
 });
 function changeInp() {
     state.isInput = true;
@@ -141,27 +139,31 @@ function handleClose(item: any) {
     });
 }
 
+function getTagsObj() {
+    return {
+        tagsId: props.dataObj.id,
+        list: state.list,
+    };
+}
 onMounted(() => {
     const arr = ['肯定', '否定', '没听清', '其他'];
     state.isEdit = !arr.includes(props.dataObj.name);
-    state.list.push({ id: 0, name: props.dataObj.name });
-    // eslint-disable-next-line no-unused-expressions
-    props.dataObj.keyword
-        ? props.dataObj.keyword.split(',').forEach((item: any, index: number) => {
-              state.list.push({
-                  id: index + 1,
-                  name: item,
-              });
-          })
-        : null;
+    const keywords = props.dataObj.keyword ? props.dataObj.keyword.split(',') : [];
+    if (!arr.includes(keywords[0])) {
+        state.list.push({ id: 0, name: props.dataObj.name });
+    }
+    keywords.forEach((item: any, index: number) => {
+        state.list.push({
+            id: index + 1,
+            name: item,
+        });
+    });
 });
 
 const { list, isEdit, inputVisible, inputValue, isInput } = toRefs(state);
+
 defineExpose({
-    tagsObj: {
-        tagsId: props.dataObj.id,
-        list,
-    },
+    getTagsObj,
 });
 </script>
 

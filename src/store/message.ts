@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-03-28 17:54:26
- * @LastEditTime: 2022-06-10 09:18:20
+ * @LastEditTime: 2022-06-23 11:13:45
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\store\message.ts
@@ -68,6 +68,7 @@ const message = defineStore({
         getActiveAccountInfo: (state) => state.activeAccountInfo,
         getHiddenAside: (state) => state.isHiddenAside,
         getChatList: (state) => state.chatList,
+        getContactAll: (state) => flatten(state.contactList[1].map((item: any) => item.children)),
     },
     // pinia 放弃了 mutations 只使用 actions
     actions: {
@@ -137,7 +138,7 @@ const message = defineStore({
             this.accounts = arr || [];
         },
         // 添加聊天记录
-        async setChatList(arr: msgType[]) {
+        setChatList(arr: msgType[]) {
             this.chatList.unshift(...arr);
         },
         // 添加新的聊天窗口
@@ -155,17 +156,21 @@ const message = defineStore({
             const dom = document.getElementById(`abc${conversationId}`)!;
             dom.className += ' animate__animated animate__backOutLeft';
             setTimeout(() => {
+                // 删除
                 this.contactList[0].forEach((item: userInfo, index) => {
                     if (item.conversationId == conversationId) {
                         this.contactList[0].splice(index, 1);
                     }
                 });
+                // 当前激活的聊天
                 if (this.userData.conversationId == conversationId) {
                     this.isContext = false;
+                    this.activeId = '';
                 }
                 this.msgTotal();
             }, 500);
         },
+        // 退出登录
         loginOut(wechatId: string | number) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const dom = document.getElementById(`account${wechatId}`)!;
@@ -208,7 +213,7 @@ const message = defineStore({
         // 设置上传参数信息
         setUploadInfo(fileId: string | number, key: string, value: any) {
             this.chatList.forEach((item) => {
-                if (item.fileId && item.fileId == fileId) {
+                if (item.fileIds && item.fileIds == fileId) {
                     // eslint-disable-next-line no-param-reassign
                     item[key] = value;
                 }

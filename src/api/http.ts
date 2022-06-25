@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2022-03-23 09:44:33
- * @LastEditTime: 2022-06-08 09:17:16
+ * @LastEditTime: 2022-06-21 18:08:37
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\api\http.ts
@@ -61,13 +61,16 @@ axiosInstance.interceptors.response.use(
     },
     (error: AxiosError) => {
         const { response } = error;
+        console.log(response);
         if (response?.status === 401) {
             ElMessage.error(showCodeMessage(response.status));
-            userStore()
-                .loginOut()
-                .then(() => {
-                    window.location.reload();
-                });
+            if (window.location.href.indexOf('/login') == -1) {
+                userStore()
+                    .loginOut()
+                    .then(() => {
+                        window.location.reload();
+                    });
+            }
         }
         ElMessage.warning('网络连接异常,请稍后再试!');
         return Promise.reject(error);

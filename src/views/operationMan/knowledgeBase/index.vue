@@ -1,11 +1,3 @@
-<!--
- * @Author: your name
- * @Date: 2022-01-14 16:48:25
- * @LastEditTime: 2022-04-13 10:16:34
- * @LastEditors: Please set LastEditors
- * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- * @FilePath: \jw-call-admin\src\views\operationMan\knowledgeBase\index.vue
--->
 <template>
     <div class="knowledgeBase" style="--el-color-primary: #f39c12">
         <div class="header flex-sb">
@@ -25,15 +17,20 @@
                 <div style="margin-right: 10px">
                     <el-input v-model="listQuery.keyword" clearable placeholder="请输入关键字" />
                 </div>
-                <el-button type="warning" @click="getList"> 搜索 </el-button>
-                <el-button type="warning" plain :icon="CirclePlus" @click="dialogFn()"> 添加知识库 </el-button>
+                <el-button type="warning" :icon="Search" @click="getList"> 搜索 </el-button>
+                <el-button type="warning" plain :icon="CirclePlus" @click="dialogFn('')"> 添加知识库 </el-button>
             </div>
             <div>
                 <el-button type="warning" :icon="Delete" plain @click="batchDel()"> 批量删除 </el-button>
             </div>
         </div>
-        <el-table v-loading="listLoading" :data="tableData" style="width: 100%; margin: 20px 0"
-            element-loading-text="给我一点时间" @selection-change="handleSelectionChange">
+        <el-table
+            v-loading="listLoading"
+            :data="tableData"
+            style="width: 100%; margin: 20px 0"
+            element-loading-text="给我一点时间"
+            @selection-change="handleSelectionChange"
+        >
             <el-table-column align="center" type="selection" width="55" />
             <el-table-column align="center" prop="name" label="标题" width="180" />
             <el-table-column align="center" prop="keyword" label="问法" />
@@ -60,22 +57,40 @@
             <el-table-column align="center" label="操作">
                 <template #default="scope">
                     <div>
-                        <el-button @click="dialogFn(scope.row)"> 编辑 </el-button>
-                        <el-button @click="del(scope.row)"> 删除 </el-button>
+                        <el-button :icon="Edit" @click="dialogFn(scope.row)"> 编辑 </el-button>
+                        <el-button :icon="Delete" @click="del(scope.row)"> 删除 </el-button>
                     </div>
                 </template>
             </el-table-column>
         </el-table>
         <div v-show="!listLoading" style="text-align: center">
-            <el-pagination v-model:current-page="listQuery.page" style="justify-content: center"
-                :page-sizes="[10, 20, 30, 50]" :page-size="listQuery.limit"
-                layout="total, sizes, prev, pager, next, jumper" :total="total" @size-change="handleSizeChange"
-                @current-change="handleCurrentChange" />
+            <el-pagination
+                v-model:current-page="listQuery.page"
+                style="justify-content: center"
+                :page-sizes="[10, 20, 30, 50]"
+                :page-size="listQuery.limit"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="total"
+                @size-change="handleSizeChange"
+                @current-change="handleCurrentChange"
+            />
         </div>
-        <el-dialog v-model="dialogVisible" :title="dialogTitle" width="30%" :close-on-click-modal="false" center
-            @close="handleClose">
-            <el-form ref="form" :model="creatForm" :rules="rules" style="width: 80%; margin: auto" label-position="left"
-                label-width="95px">
+        <el-dialog
+            v-model="dialogVisible"
+            :title="dialogTitle"
+            width="40%"
+            :close-on-click-modal="false"
+            center
+            @close="handleClose"
+        >
+            <el-form
+                ref="form"
+                :model="creatForm"
+                :rules="rules"
+                style="width: 90%; margin: auto"
+                label-position="left"
+                label-width="95px"
+            >
                 <el-form-item label="标题名称" prop="name">
                     <div>
                         <el-input v-model="creatForm.name" placeholder="请输入标题名称" />
@@ -85,16 +100,27 @@
                     <el-input v-model="creatForm.label" placeholder="请输入知识库标签" />
                 </el-form-item>
                 <el-form-item label="知识库类型" prop="type">
-                    <el-select v-model="creatForm.type">
+                    <el-select v-model="creatForm.type" placeholder="选择类型">
                         <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
                     </el-select>
                 </el-form-item>
                 <el-form-item label="关键词" prop="keyword">
-                    <el-input v-model="creatForm.keyword" type="textarea" placeholder="多个关键词之间用英文','分隔" :rows="4" />
+                    <el-input
+                        v-model="creatForm.keyword"
+                        type="textarea"
+                        placeholder="多个关键词之间用英文','分隔"
+                        :rows="4"
+                    />
                 </el-form-item>
                 <el-form-item label="录音" prop="path">
-                    <el-button :type="recorderStatus ? 'danger' : 'warning'" :icon="Microphone" :round="true"
-                        @mousedown.stop="recordFn" @mouseup.stop="emptyTime" @click.stop="playRecorder">
+                    <el-button
+                        :type="recorderStatus ? 'danger' : 'warning'"
+                        :icon="Microphone"
+                        :round="true"
+                        @mousedown.stop="recordFn"
+                        @mouseup.stop="emptyTime"
+                        @click.stop="playRecorder"
+                    >
                         长按
                     </el-button>
                     <!-- 倒计时 -->
@@ -102,6 +128,29 @@
                         countDownNum
                     }}</span>
                     <video ref="videoPlay" style="display: none" :src="creatForm.path" />
+                </el-form-item>
+                <el-form-item>
+                    <template #label>
+                        <div style="width: 52px; padding: 5px 8px">
+                            <span>图文</span>
+                            <el-button size="small" :icon="CirclePlus" type="warning" circle @click="addPath()" />
+                        </div>
+                    </template>
+                    <div
+                        v-for="(item, index) in imgPathList"
+                        :key="item"
+                        style="margin: 5px 0; width: 100%"
+                        class="flex"
+                    >
+                        <div class="flex" style="margin-right: 10px; flex: 1">
+                            <div style="width: 52px">
+                                <span>备注：</span>
+                                <el-button :icon="Remove" type="warning" circle @click="deletePath(index)" />
+                            </div>
+                            <el-input v-model="item.itext" type="textarea" :rows="4" />
+                        </div>
+                        <me-upload ref="UpLoadRef" v-model="item.ipath" :limit="1" :token="token" />
+                    </div>
                 </el-form-item>
                 <el-form-item label="暂停时间" prop="pauseTime">
                     <div class="flex">
@@ -125,7 +174,7 @@ import { ElMessageBox } from 'element-plus';
 import Recorder from 'js-audio-recorder';
 import * as qiniu from 'qiniu-js';
 import { v4 } from 'uuid';
-import { CirclePlus, Delete, Microphone } from '@element-plus/icons-vue';
+import { CirclePlus, Delete, Microphone, Remove, Edit, Search } from '@element-plus/icons-vue';
 import {
     createKnowledge,
     updateKnowledge,
@@ -142,6 +191,12 @@ const {
 const uuid = v4;
 
 const state = reactive<Record<string, any>>({
+    imgPathList: [
+        {
+            ipath: [],
+            itext: '',
+        },
+    ] as { ipath: []; itext: string }[],
     tableData: [],
     listQuery: {
         limit: 20,
@@ -218,13 +273,13 @@ const state = reactive<Record<string, any>>({
         label: [{ required: true, message: '请输入知识库标签', trigger: 'blur' }],
         keyword: [{ required: true, message: '请输入关键词', trigger: 'blur' }],
         pauseTime: [{ required: true, message: '请输入暂停时间', trigger: 'blur' }],
-        path: [
-            {
-                required: true,
-                message: '请长按录音，上传录音文件！！！',
-                trigger: 'click',
-            },
-        ],
+        // path: [
+        //     {
+        //         required: true,
+        //         message: '请长按录音，上传录音文件！！！',
+        //         trigger: 'click',
+        //     },
+        // ],
         type: [
             {
                 required: true,
@@ -235,11 +290,22 @@ const state = reactive<Record<string, any>>({
     },
     ids: null,
 });
-
+const UpLoadRef = ref();
 const form = ref();
 const videoPlay = ref();
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const filterCount = (str: string): number => str.split(',').length;
+const deletePath = (index: number) => {
+    if (state.imgPathList.length == 1) return;
+    state.imgPathList.splice(index, 1);
+};
+const addPath = () => {
+    state.imgPathList.push({
+        ipath: [],
+        itext: '',
+    });
+};
+
 // 批量删除
 const batchDel = () => {
     if (!state.ids) return $tips('warning', '请先选择下列数据！！！');
@@ -303,27 +369,37 @@ const getList = () => {
         state.listLoading = false;
     });
 };
-const dialogFn = (row = '') => {
+const dialogFn = (row: any) => {
+    if (state.imgPathList.length == 0) {
+        addPath();
+    }
     if (row) {
         state.creatForm = row;
+        if (row.imgPath) {
+            state.imgPathList = [];
+            (JSON.parse(row.imgPath) as any[]).forEach((item) => {
+                state.imgPathList.push({
+                    ipath: item.ipath ? [{ realurl: item.ipath }] : [],
+                    itext: item.itext || '',
+                });
+            });
+        }
         state.dialogTitle = '编辑知识库';
     } else {
         state.dialogTitle = '添加知识库';
     }
     state.dialogVisible = true;
 };
-const handleSelectionChange = (val: {
-    map: (arg0: (item: any) => any) => { (): any; new(): any; join: { (arg0: string): null; new(): any } };
-}) => {
+const handleSelectionChange = (val: any[] | string) => {
     if (val) {
-        state.ids = val.map((item) => item.id).join('-');
+        state.ids = (val as { id: string }[]).map((item) => item.id).join('-');
     } else {
         state.ids = null;
     }
 };
 
 const handleClose = () => {
-    form.value.resetFields();
+    form.value.clearValidate();
     state.dialogVisible = false;
     state.creatForm = {
         pauseTime: 3000,
@@ -331,6 +407,7 @@ const handleClose = () => {
     };
     state.recorderStatus = false; // 录音状态
     state.recorder = null;
+    state.imgPathList = [];
 };
 const handleSizeChange = (val: number) => {
     state.listQuery.limit = val;
@@ -452,6 +529,15 @@ const emptyTime = () => {
     }
 };
 const submitForm = () => {
+    state.creatForm.ipathVos = [];
+    state.imgPathList.forEach((item: { ipath: { realurl: string }[]; itext: string }) => {
+        if (item.ipath || item.itext) {
+            state.creatForm.ipathVos.push({
+                ipath: item.ipath[0] ? item.ipath[0].realurl : '',
+                itext: item.itext,
+            });
+        }
+    });
     form.value.validate((valid: any) => {
         if (valid) {
             (state.dialogTitle === '添加知识库' ? createKnowledge : updateKnowledge)(state.creatForm).then(
@@ -492,7 +578,6 @@ const getQiNiuToken = () => {
 onUpdated(() => {
     addTableIndex();
 });
-
 onMounted(() => {
     getQiNiuToken();
     getList();
@@ -510,6 +595,8 @@ const {
     recorderStatus,
     countDownTime,
     countDownNum,
+    token,
+    imgPathList,
 } = toRefs(state);
 </script>
 <style lang="scss" scoped>

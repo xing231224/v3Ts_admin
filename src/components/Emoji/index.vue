@@ -1,14 +1,13 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-30 15:48:12
- * @LastEditTime: 2022-04-02 09:40:11
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2022-06-15 14:34:20
+ * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\components\Emjoy\index.vue
 -->
 <template>
     <div class="emojisList">
-        <!-- <el-scrollbar :min-size="10"> -->
         <span
             v-for="item in emojisList"
             :key="item.value"
@@ -16,36 +15,34 @@
             :data-name="item.value"
             @click="submitEmo(item)"
         />
-        <!-- </el-scrollbar> -->
     </div>
 </template>
 
-<script setup lang='ts'>
-import { EmojiList } from "@/utils/emjoymethod"
-
+<script setup lang="ts">
+import { EmojiList } from '@/utils/emjoymethod';
 
 const emit = defineEmits(['update:modelValue', 'click']);
 interface stateType {
-    emojisList: { key: string, value: string }[]
+    emojisList: { key: string; value: string }[];
 }
 const state = reactive<stateType>({
-    emojisList: []
-})
+    emojisList: [],
+});
 
-const submitEmo = (item: { key: string, value: string }) => {
+const submitEmo = (item: { key: string; value: string }) => {
     const obj = {
         ...item,
         html: `<span class="chat-emoji ${item.value}" data-name="${item.value}"></span>`,
-    }
-    emit("click", obj)
-}
+    };
+    emit('click', obj);
+};
 onMounted(() => {
-    state.emojisList = EmojiList()
-})
-const { emojisList } = toRefs(state)
+    state.emojisList = EmojiList();
+});
+const { emojisList } = toRefs(state);
 </script>
 
-<style lang='scss' scoped>
+<style lang="scss" scoped>
 .emojisList {
     width: 225px;
     height: 240px;

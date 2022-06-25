@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-04-06 12:01:42
- * @LastEditTime: 2022-06-14 14:32:17
+ * @LastEditTime: 2022-06-15 16:42:14
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\verbalTRStock\Processnode.vue
@@ -80,7 +80,7 @@
         </div>
         <div class="flex">
             <span style="width: 80px">上传：</span>
-            <UpLoad ref="upLoad" :list="dataObj?.vpath" :token="token" />
+            <me-upload ref="upLoad" :list="dataObj?.vpath" :token="token" />
         </div>
         <template #footer>
             <span class="dialog-footer">
@@ -96,7 +96,6 @@ import Recorder from 'js-audio-recorder';
 import * as qiniu from 'qiniu-js';
 import { v4 } from 'uuid';
 import Select from './Select.vue';
-import UpLoad from './upLoad.vue';
 import { createNode, delNode, delBranchNode } from '@/api/modules/operationMang/operationword';
 
 const {
@@ -369,20 +368,19 @@ function getEndpointInfo() {
         obj.branchList = [];
         state.EndpointList.push({ id: `node_main${state.nodeObj.id}` });
         state.branchList.forEach((item: any) => {
-            console.log(item.id);
-            console.log(proxy.$refs.selectRef);
-            console.log(
-                proxy.$refs.selectRef.filter((row: { tagsObj: { tagsId: any } }) => row.tagsObj.tagsId == item.id),
-            );
+            const tagsObj = proxy.$refs.selectRef.filter((row: any) => row.getTagsObj().tagsId == item.id);
             state.EndpointList.push({ id: `node_tags${item.id}` });
             obj.branchList.push({
                 id: item.id,
                 name: item.name,
                 nextFlowId: '',
-                keyword: proxy.$refs.selectRef
-                    .filter((row: { tagsObj: { tagsId: any } }) => row.tagsObj.tagsId == item.id)[0]
-                    .tagsObj.list.value.map((row: { name: any }) => row.name)
-                    .join(','),
+                keyword:
+                    tagsObj.length > 0
+                        ? tagsObj[0]
+                              .getTagsObj()
+                              .list.map((row: { name: string }) => row.name)
+                              .join(',')
+                        : '',
             });
         });
         obj.vos = upLoad.value

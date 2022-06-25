@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-30 14:17:46
- * @LastEditTime: 2022-06-14 09:47:33
+ * @LastEditTime: 2022-06-21 15:42:20
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\verbalTRStock\index.vue
@@ -508,8 +508,16 @@ const searchAffirm = () => {
     sreachScenarios({}).then((res) => {
         if (res.data.status === 200) {
             state.trickList = res.data.data;
-            // state.userObj.checked = userCheckox.value.model;
             state.dialogVisible = false;
+            if (state.trickList.length == 0) {
+                loadingInstance.close();
+                nextTick(() => {
+                    drog();
+                    move_view();
+                });
+                return;
+            }
+            // state.userObj.checked = userCheckox.value.model;
             state.scenariosId = state.trickList[0].id;
             const loading = ElLoading.service({
                 lock: true,

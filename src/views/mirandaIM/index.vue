@@ -1,39 +1,14 @@
+
 <template>
     <el-container>
         <el-header height="auto" style="font-size: 14px; border-bottom: 1px solid #e5e7eb">
             <div class="flex" style="padding: 5px 0">
-                <span class="juz">在线状态</span>
+                <span class="juz">开启知识库自动应答</span>
                 <span class="juz mr-5">
                     <i-ph-question-thin />
                 </span>
-                <el-switch v-model="value" size="large" />
-                <div class="juz" style="margin: 0 10px">
-                    <el-divider direction="vertical" />
-                </div>
-                <span class="juz">最大接待人数</span>
-                <span class="juz mr-5">
-                    <i-ph-question-thin />
-                </span>
-                <span class="juz mr-5">10</span>
-                <span class="juz">
-                    <i-system-uicons-write />
-                </span>
-                <div class="juz" style="margin: 0 10px">
-                    <el-divider direction="vertical" />
-                </div>
-                <span class="juz">优先旧消息</span>
-                <span class="juz mr-5">
-                    <i-ph-question-thin />
-                </span>
-                <el-switch v-model="value" size="large" />
-                <div class="juz" style="margin: 0 10px">
-                    <el-divider direction="vertical" />
-                </div>
-                <span class="juz">开启新消息通知</span>
-                <span class="juz mr-5">
-                    <i-ph-question-thin />
-                </span>
-                <el-switch v-model="value" size="large" />
+                <el-switch v-model="isValue" size="large" :disabled="disabled" style="--el-switch-on-color: #e6a23c"
+                    @change="changeSwitch" />
             </div>
         </el-header>
         <el-container>
@@ -47,29 +22,27 @@
                 </div>
             </el-main>
             <el-aside :width="isHidden ? '0px' : '300px'" class="aside">
-                <VerbalTrickVue />
+                <VerbalTrickVue ref="verbalTrick" />
             </el-aside>
         </el-container>
     </el-container>
     <WeCahtLogin v-if="myMessage.isLogin" v-model="myMessage.isLogin" :src="imgBase64" @handle-close="handleClose" />
-    <el-dialog
-        v-if="dialogVisible"
-        v-model="dialogVisible"
-        :title="msgType == '403' ? '查看视频' : '查看图片'"
-        width="30%"
-        @close="handleClose"
-    >
-        <div v-if="msgType == '403'">
-            <video id="upvideo" :src="fileUrl" style="width: 100%; height: 100%" controls>
-                您的浏览器不支持视频播放
-            </video>
-        </div>
-        <img v-else :src="fileUrl" />
+    <el-dialog v-if="dialogVisible" v-model="dialogVisible" :title="msgType == '403' ? '查看视频' : '查看图片'" width="40%"
+        top="4vh" @close="handleClose">
+        <template v-if="msgType == '403'">
+            <div class="flex-center">
+                <video id="upvideo" :src="fileUrl" style="width: 50%; height: 100%" controls>
+                    您的浏览器不支持视频播放
+                </video>
+            </div>
+        </template>
+        <template v-else>
+            <img :src="fileUrl" />
+        </template>
         <template #footer>
             <span class="dialog-footer">
                 <el-button @click="dialogVisible = false">关闭</el-button>
-                <el-button type="primary" @click="downFile(fileUrl, msgType == '403' ? '视频.mp4' : '图片.png')"
-                    >下载
+                <el-button type="primary" @click="downFile(fileUrl, msgType == '403' ? '视频.mp4' : '图片.png')">下载
                 </el-button>
             </span>
         </template>
@@ -84,14 +57,17 @@ import WeCahtLogin from './weChatLogin/index.vue';
 import Store from '@/store/message';
 import { downFile } from '@/utils/mineUtils';
 import WebSocketClass from '@/utils/webSocket';
+import userStore from '@/store/user';
 
 const {
     proxy: { $tips },
 } = getCurrentInstance() as any;
 const $websocket = new WebSocketClass('192.168.3.241:18888');
+// const $websocket = new WebSocketClass('124.71.190.1:18888');
 const myMessage = Store();
 const state = reactive({
-    value: false,
+    isValue: false,
+    disabled: false,
     dialogVisible: false,
     isHidden: false,
     dataList: [[], []] as [any[], any[]],
@@ -100,21 +76,38 @@ const state = reactive({
     imgBase64: '',
     isChatList: false,
     isContacts: false,
-    loading: null as unknown as { close: Function },
+    loading: null as unknown as { close: Function } | null,
     msgType: '',
 });
 const fileUrl = ref('');
+const chatContent = ref();
+const verbalTrick = ref();
 const handleClose = () => {
     state.imgBase64 = '';
     state.msgType = '';
 };
-const chatContent = ref();
+
+const changeSwitch = (val: any) => {
+    if (!myMessage.activeAccountInfo.id) return;
+    $websocket.webSocketSendMsg({
+        status: '14',
+        state: val ? 1 : 2,
+        data: {},
+    });
+};
 const openDialog = (bool: boolean, url: string, msgType: string) => {
     state.dialogVisible = bool;
     fileUrl.value = url;
     //  403视频  402图片
     state.msgType = msgType;
 };
+const clearLoading = () => {
+    console.log(state.loading);
+
+    /* eslint-disable no-unused-expressions */
+    state.loading && state.loading.close();
+    state.loading = null
+}
 // 时间排序
 const sortTime = (arr: any[]): any[] => {
     return arr.sort((a, b) => b.offLineMsg.sendTimeStamp - a.offLineMsg.sendTimeStamp);
@@ -131,11 +124,15 @@ watch(
 );
 watch([() => state.isChatList, () => state.isContacts], (n) => {
     if (n.every((item) => item)) {
-        state.loading.close();
+        clearLoading()
         myMessage.setContactList(state.dataList as [[], []]);
     }
 });
-const loading = (loading: { close: () => void }) => {
+const loading = (loading: { close: () => void }, bool = false) => {
+    if (bool) {
+        state.loading = loading;
+        return;
+    }
     // 状态层清空数据
     myMessage.clearData();
     myMessage.setContactList([[], []]);
@@ -151,12 +148,16 @@ provide('openDialog', openDialog);
 provide('websocket', $websocket);
 // 接收组件的loading 方法
 provide('loading', loading);
+provide('clearLoading', clearLoading);
 
 // 接收所有后端返回的消息
 $websocket.getWebSocketMsg((obj: any) => {
     console.log(obj.data);
     // 接收消息
     if (obj.status.length == 3 && obj.status[0] == '4') {
+        if (obj.data.fileSize > 20971520) {
+            verbalTrick.value.getGigFileList();
+        }
         myMessage.receiveChat(obj.data, obj.weChatId, () => {
             setTimeout(() => {
                 chatContent.value.setScrollHeight();
@@ -185,17 +186,20 @@ $websocket.getWebSocketMsg((obj: any) => {
             // 添加聊天记录进列表
             if (obj.data.length == 0) {
                 $tips('warning', '暂无更多消息！！！');
+                clearLoading()
                 // 通知子组件不再发送消息
                 chatContent.value.chatStatus(false);
                 return;
             }
+            myMessage.setChatList(obj.data);
             /* eslint-disable no-case-declarations */
             const firstChil = document.querySelector('.message')?.firstElementChild as HTMLElement;
             const top = firstChil ? firstChil.offsetTop * obj.data.length * 2 : 0;
-            nextTick(() => {
+            setTimeout(() => {
                 chatContent.value.setScrollHeight(top);
-            });
-            myMessage.setChatList(obj.data);
+                setTimeout(clearLoading, 300);
+            }, 50);
+
             break;
         //  外部联系人
         case '7':
@@ -218,6 +222,16 @@ $websocket.getWebSocketMsg((obj: any) => {
             state.dataList[0] = sortTime(obj.data);
             state.isChatList = true;
             break;
+        case '17':
+            if (obj.state == 200) {
+                ['7', '8', '9', '11'].forEach((item) => {
+                    $websocket.webSocketSendMsg({
+                        status: item,
+                        data: { userId: `${userStore().userId}`, wechatId: obj.weChatId },
+                    });
+                });
+            }
+            break;
         // 获取base64二维码
         case '101':
             // eslint-disable-next-line no-return-assign
@@ -230,6 +244,15 @@ $websocket.getWebSocketMsg((obj: any) => {
             myMessage.isLogin = false;
             $tips('success', obj.msg);
             break;
+        // 通知文件更新状态
+        case '590':
+            if (obj.state == 200) {
+                $tips('success', obj.msg);
+                verbalTrick.value.getGigFileList();
+            } else {
+                $tips('warning', obj.msg);
+            }
+            break;
         default:
             break;
     }
@@ -239,6 +262,8 @@ watchEffect(() => {
     state.isContentMess = computed(() => myMessage.$state.isContext).value;
     state.isHidden = computed(() => myMessage.getHiddenAside).value;
     state.dataList[1] = state.contacts;
+    state.disabled = !myMessage.activeAccountInfo.id;
+    state.isValue = myMessage.activeAccountInfo.open == '1';
 });
 onMounted(() => {
     setTimeout(() => {
@@ -246,7 +271,7 @@ onMounted(() => {
         $websocket.webSocketSendMsg({ status: '10' });
     }, 800);
 });
-const { value, dialogVisible, isHidden, isContentMess, imgBase64, msgType } = toRefs(state);
+const { isValue, dialogVisible, isHidden, isContentMess, imgBase64, msgType, disabled } = toRefs(state);
 </script>
 
 <style lang="scss" scoped>

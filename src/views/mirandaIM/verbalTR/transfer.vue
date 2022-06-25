@@ -1,11 +1,3 @@
-<!--
- * @Author: xing 1981193009@qq.com
- * @Date: 2022-05-20 09:52:04
- * @LastEditors: xing 1981193009@qq.com
- * @LastEditTime: 2022-06-10 14:30:41
- * @FilePath: \v3ts_admin\src\views\mirandaIM\verbalTR\transfer.vue
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
--->
 <template>
     <div class="transfer flex">
         <div class="transfer-panel">
@@ -95,7 +87,6 @@ const changeSear = (val: string) => {
     state.list = [];
     if (val) {
         state.list = props.data.filter((item) => item.name.indexOf(val) != -1);
-        console.log(state.list);
     } else {
         state.list = props.data;
     }
