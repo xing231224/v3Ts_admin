@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-30 14:17:46
- * @LastEditTime: 2022-06-21 15:42:20
+ * @LastEditTime: 2022-06-27 15:59:32
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\verbalTRStock\index.vue
@@ -811,14 +811,12 @@ const {
 
 <style lang="scss" scoped>
 .operationWords {
-    padding: 20px;
-
+    padding: 0 20px;
     .operation_btn {
         padding: 0 20px;
         margin: 20px 20px 0 0;
         border-right: 1px solid #ccc;
     }
-
     .diagramContainer-warp {
         height: 80vh;
         overflow: hidden;

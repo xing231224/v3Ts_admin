@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-03-28 17:54:26
- * @LastEditTime: 2022-06-23 11:13:45
+ * @LastEditTime: 2022-06-27 09:53:55
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\store\message.ts
@@ -20,17 +20,6 @@ interface state {
     isLogin: boolean;
     contactList: [any[], any[]];
     chatList: msgType[];
-}
-interface WebMsgVo {
-    id: string; // 用户id
-    qrCode: string; // 二维码
-    accountTo: string; // 自己微企账号
-    accountGo: string; // 对方微企账号
-    time: string; // 发送时间
-    path: string; // 附件地址
-    sendStatus: string; // 发送状态
-    content: string; // 聊天内容
-    dialogueId: string; // 对话唯一标识
 }
 interface receiveChatT {
     clientId: string;

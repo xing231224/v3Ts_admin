@@ -188,18 +188,15 @@ class WebSocketClass {
         };
     }
 
-    // eslint-disable-next-line class-methods-use-this
     isArrayBuffer(obj: ArrayBuffer | any) {
         return Object.prototype.toString.call(obj) === '[object ArrayBuffer]';
     }
 
-    // eslint-disable-next-line class-methods-use-this
     isBlob(obj: Blob | any) {
         return Object.prototype.toString.call(obj) === '[object Blob]';
     }
 
     // 将字符串转换为byte数组
-    // eslint-disable-next-line class-methods-use-this
     byteArray(message: string) {
         const bytesArr = this.stringToByte(message);
         const bytes = new Uint8Array(bytesArr.length);
@@ -211,7 +208,6 @@ class WebSocketClass {
     }
 
     // 将字符串转为 Array byte数组
-    // eslint-disable-next-line class-methods-use-this
     stringToByte(str: string) {
         const bytes = [];
         let len;
@@ -270,7 +266,6 @@ class WebSocketClass {
     }
 
     // 发送消息转换二进制
-    // eslint-disable-next-line class-methods-use-this
     transformRequest(responseType: string) {
         const initProto = protoRoot.lookup(responseType);
         return (data: any) => {

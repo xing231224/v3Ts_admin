@@ -25,14 +25,15 @@
                     <el-input v-model="input2" class="verbal_search" placeholder="Please Input" :prefix-icon="Search" />
                     <el-radio-group v-model="radioId" class="el_verbal_Tree">
                         <el-radio v-for="item in scenariosList" :key="item.id" :label="item.id">{{
-                                item.name
+                            item.name
                         }}</el-radio>
                     </el-radio-group>
                     <div v-show="scenariosList.length == 0" class="flex-col" style="height: 100%; margin-top: 60px">
-                        <span style="font-size: 160px">
+                        <!-- <span style="font-size: 160px">
                             <svg-icon name="undraw_no_data_re_kwbl" style="margin: 0 auto"></svg-icon>
                         </span>
-                        <h2 style="text-align: center; font-size: 24px; font-weight: 600; margin: 10px 0">暂无</h2>
+                        <h2 style="text-align: center; font-size: 24px; font-weight: 600; margin: 10px 0">暂无</h2> -->
+                        <el-empty description="空" />
                     </div>
                 </div>
             </el-tab-pane>
@@ -41,14 +42,22 @@
                     <el-scrollbar :min-size="10">
                         <div v-for="item in bigFileList" :key="item.fileId" class="big_file_item">
                             <div class="juz">
-                                <el-button v-if="item.url" size="small" @click="downFile(item.url, item.fileName)">下载
+                                <el-button v-if="item.url" size="small" @click="downFile(item.url, item.fileName)"
+                                    >下载
                                 </el-button>
                                 <template v-else>
-                                    <el-button v-if="!item.downType" size="small" @click="requestDate(item)">请求数据
+                                    <el-button v-if="!item.downType" size="small" @click="requestDate(item)"
+                                        >请求数据
                                     </el-button>
-                                    <el-popconfirm v-if="item.downType == 1" confirm-button-text="是"
-                                        cancel-button-text="否" :icon="InfoFilled" icon-color="#626AEF" title="是否重新请求数据?"
-                                        @confirm="confirmEvent(item)">
+                                    <el-popconfirm
+                                        v-if="item.downType == 1"
+                                        confirm-button-text="是"
+                                        cancel-button-text="否"
+                                        :icon="InfoFilled"
+                                        icon-color="#626AEF"
+                                        title="是否重新请求数据?"
+                                        @confirm="confirmEvent(item)"
+                                    >
                                         <template #reference>
                                             <el-button size="small">准备数据中</el-button>
                                         </template>
@@ -58,16 +67,17 @@
                             <div class="flex-col">
                                 <span class="file_name">{{ item.fileName }}</span>
                                 <span class="file_name">{{
-                                        parseTime(item.sendTimeStamp, `{y}/{m}/{d} {h}:{i}`)
+                                    parseTime(item.sendTimeStamp, `{y}/{m}/{d} {h}:{i}`)
                                 }}</span>
                             </div>
                         </div>
                         <!-- 暂无数据 -->
                         <div v-show="bigFileList.length == 0" class="flex-col" style="height: 100%; margin-top: 60px">
-                            <span style="font-size: 160px">
+                            <!-- <span style="font-size: 160px">
                                 <svg-icon name="undraw_no_data_re_kwbl" style="margin: 0 auto"></svg-icon>
                             </span>
-                            <h2 style="text-align: center; font-size: 24px; font-weight: 600; margin: 10px 0">暂无</h2>
+                            <h2 style="text-align: center; font-size: 24px; font-weight: 600; margin: 10px 0">暂无</h2> -->
+                            <el-empty description="空" />
                         </div>
                     </el-scrollbar>
                 </div>

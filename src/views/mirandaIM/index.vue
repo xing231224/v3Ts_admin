@@ -1,14 +1,18 @@
-
 <template>
     <el-container>
         <el-header height="auto" style="font-size: 14px; border-bottom: 1px solid #e5e7eb">
-            <div class="flex" style="padding: 5px 0">
+            <div class="flex">
                 <span class="juz">开启知识库自动应答</span>
                 <span class="juz mr-5">
                     <i-ph-question-thin />
                 </span>
-                <el-switch v-model="isValue" size="large" :disabled="disabled" style="--el-switch-on-color: #e6a23c"
-                    @change="changeSwitch" />
+                <el-switch
+                    v-model="isValue"
+                    size="large"
+                    :disabled="disabled"
+                    style="--el-switch-on-color: #e6a23c"
+                    @change="changeSwitch"
+                />
             </div>
         </el-header>
         <el-container>
@@ -27,8 +31,14 @@
         </el-container>
     </el-container>
     <WeCahtLogin v-if="myMessage.isLogin" v-model="myMessage.isLogin" :src="imgBase64" @handle-close="handleClose" />
-    <el-dialog v-if="dialogVisible" v-model="dialogVisible" :title="msgType == '403' ? '查看视频' : '查看图片'" width="40%"
-        top="4vh" @close="handleClose">
+    <el-dialog
+        v-if="dialogVisible"
+        v-model="dialogVisible"
+        :title="msgType == '403' ? '查看视频' : '查看图片'"
+        width="40%"
+        top="4vh"
+        @close="handleClose"
+    >
         <template v-if="msgType == '403'">
             <div class="flex-center">
                 <video id="upvideo" :src="fileUrl" style="width: 50%; height: 100%" controls>
@@ -42,7 +52,8 @@
         <template #footer>
             <span class="dialog-footer">
                 <el-button @click="dialogVisible = false">关闭</el-button>
-                <el-button type="primary" @click="downFile(fileUrl, msgType == '403' ? '视频.mp4' : '图片.png')">下载
+                <el-button type="primary" @click="downFile(fileUrl, msgType == '403' ? '视频.mp4' : '图片.png')"
+                    >下载
                 </el-button>
             </span>
         </template>
@@ -102,12 +113,10 @@ const openDialog = (bool: boolean, url: string, msgType: string) => {
     state.msgType = msgType;
 };
 const clearLoading = () => {
-    console.log(state.loading);
-
     /* eslint-disable no-unused-expressions */
     state.loading && state.loading.close();
-    state.loading = null
-}
+    state.loading = null;
+};
 // 时间排序
 const sortTime = (arr: any[]): any[] => {
     return arr.sort((a, b) => b.offLineMsg.sendTimeStamp - a.offLineMsg.sendTimeStamp);
@@ -124,7 +133,7 @@ watch(
 );
 watch([() => state.isChatList, () => state.isContacts], (n) => {
     if (n.every((item) => item)) {
-        clearLoading()
+        clearLoading();
         myMessage.setContactList(state.dataList as [[], []]);
     }
 });
@@ -186,7 +195,7 @@ $websocket.getWebSocketMsg((obj: any) => {
             // 添加聊天记录进列表
             if (obj.data.length == 0) {
                 $tips('warning', '暂无更多消息！！！');
-                clearLoading()
+                clearLoading();
                 // 通知子组件不再发送消息
                 chatContent.value.chatStatus(false);
                 return;
