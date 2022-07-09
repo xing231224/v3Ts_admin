@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-30 14:17:46
- * @LastEditTime: 2022-06-27 15:59:32
+ * @LastEditTime: 2022-07-09 17:18:56
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\verbalTRStock\index.vue
@@ -18,19 +18,21 @@
                 <div style="text-align: center">
                     <el-button type="primary" :icon="CirclePlus" @click="dialogFn('add')">添加 </el-button>
                 </div>
-                <el-card
-                    v-for="(o, index) in trickList"
-                    :key="o.id"
-                    :class="cardIndex === index ? `box-card border-card` : 'box-card'"
-                >
-                    <div style="padding: 20px 10px" @click="selectCard(index)">
-                        <div class="box-fn">
-                            <span @click.stop="dialogFn('edit', o)">编辑</span>
-                            <span @click.stop="deteleTrick(o, index)">删除</span>
+                <el-scrollbar height="85vh" wrap-style="padding:0 20px">
+                    <el-card
+                        v-for="(o, index) in trickList"
+                        :key="o.id"
+                        :class="cardIndex === index ? `box-card border-card` : 'box-card'"
+                    >
+                        <div style="padding: 20px 10px" @click="selectCard(index)">
+                            <div class="box-fn">
+                                <span @click.stop="dialogFn('edit', o)">编辑</span>
+                                <span @click.stop="deteleTrick(o, index)">删除</span>
+                            </div>
+                            <div style="font-size: 14px">{{ o.name }}</div>
                         </div>
-                        <div style="font-size: 14px">{{ o.name }}</div>
-                    </div>
-                </el-card>
+                    </el-card>
+                </el-scrollbar>
             </div>
             <div id="NodeRelation" style="flex: 1">
                 <div ref="plumb_header" class="plumb_header flex">
@@ -40,7 +42,7 @@
                     <el-button type="primary" style="margin: 0 20px" :icon="CollectionTag" @click="preserve()"
                         >保存
                     </el-button>
-                    <el-button type="primary" style :icon="CopyDocument" @click="dialogFn('copy')"> 复制话术</el-button>
+                    <el-button type="primary" :icon="CopyDocument" @click="dialogFn('copy')"> 复制话术</el-button>
                     <el-button-group class="ml-4">
                         <el-tooltip class="box-item" effect="dark" content="放大" placement="top-start">
                             <el-button type="primary" :icon="ZoomIn" @click="scaleFn('ZoomIn')" />
@@ -49,6 +51,9 @@
                             <el-button type="primary" :icon="ZoomOut" @click="scaleFn('ZoomOut')" />
                         </el-tooltip>
                     </el-button-group>
+                    <el-button type="primary" class="ml-4" :icon="CirclePlus" @click="dialogFn('addKonwledgeBase')">
+                        添加知识库</el-button
+                    >
                 </div>
                 <div class="diagramContainer-warp">
                     <div class="diagramContainer_content" @mousemove="mousemoveHandler">
@@ -130,6 +135,16 @@
                     <el-button type="primary" @click="copyFlowFn">确 定</el-button>
                 </p>
             </div>
+            <div v-if="dialogType === 'addKonwledgeBase'">
+                <el-checkbox-group v-model="knowledgeIds" class="flex-col">
+                    <el-checkbox v-for="item in knowledgeList" :key="item.id" :label="item.id">{{
+                        item.name
+                    }}</el-checkbox>
+                </el-checkbox-group>
+                <p style="text-align: right; padding: 20px 20px 0">
+                    <el-button type="primary" @click="addKnowledge">添 加</el-button>
+                </p>
+            </div>
         </el-dialog>
     </div>
 </template>
@@ -145,7 +160,10 @@ import {
     saveNodeRelation,
     getNodeRelation,
     copyFlow,
+    addKnowledges,
+    getScenariosById,
 } from '@/api/modules/operationMang/operationword';
+import { sreachKnowledge } from '@/api/modules/operationMang/knowledgeBase';
 import { qiNiuToken } from '@/api/qiniu';
 import Node from './Node.vue';
 
@@ -198,10 +216,18 @@ const state = reactive<{ [propName: string]: any }>({
     Loop: null, // 长按
     countDownTime: null, // 倒计时
     listShow: true,
+    knowledgeList: [],
+    knowledgeIds: [],
 });
 const getQiNiuToken = (): void => {
     qiNiuToken().then((res: { data: { data: null } }) => {
         state.updatatoken = res.data.data;
+    });
+};
+
+const sreachKnowledgeFn = () => {
+    sreachKnowledge({}).then((res) => {
+        state.knowledgeList = res.data.data.records || [];
     });
 };
 const scenariosInfoFn = computed(() => {
@@ -222,7 +248,7 @@ const positionXY = (str: string) => {
 };
 const mouseup = (id: number | string) => {
     nextTick(() => {
-        const node_move = document.getElementById(`node_move${id}`);
+        const node_move = document.querySelector(`.node_move${id}`) as HTMLElement;
         const top = node_move?.style.top.substring(0, node_move.style.top.indexOf('px'));
         const left = node_move?.style.left.substring(0, node_move.style.left.indexOf('px'));
         state.list.forEach((item: any) => {
@@ -573,13 +599,11 @@ function searchScenar() {
 // 添加话术 和 编辑
 function addTrick() {
     if (!state.trickName) return $tips('warning', '请输入话术名称！！！');
-    // console.log(state.userInfo);
+
     if (state.dialogType === 'add') {
-        const obj = {
+        createScenarios({
             name: state.trickName,
-            // memberId: state.userInfo?.id,
-        };
-        createScenarios(obj).then((res) => {
+        }).then((res) => {
             if (res.data.status === 200) {
                 $tips('success', res.data.msg);
                 searchScenar();
@@ -636,11 +660,31 @@ function dialogFn(type: string, row: any = '') {
         case 'copy':
             state.dialogTitle = '复制话术';
             break;
-
+        case 'addKonwledgeBase':
+            state.dialogTitle = '添加知识库';
+            if (!state.scenariosId) return $tips('warning', '请先选择话术！！！');
+            getScenariosById(state.scenariosId).then((res) => {
+                state.knowledgeIds = res.data.data
+                    ? JSON.parse(res.data.data.knows).map((item: string) => Number(item))
+                    : [];
+            });
+            break;
         default:
             break;
     }
     state.dialogVisible = true;
+}
+// 添加知识库
+function addKnowledge() {
+    // if (state.knowledgeIds.length == 0) return $tips('warning', '请先选择知识库');
+    addKnowledges({ ids: state.knowledgeIds, scenarios: state.scenariosId }).then((res) => {
+        if (res.data.status == 200) {
+            $tips('success', res.data.msg);
+            state.dialogVisible = false;
+        } else {
+            $tips('success', res.data.msg);
+        }
+    });
 }
 // 提交复制
 function copyFlowFn() {
@@ -659,6 +703,7 @@ function handleClose() {
     state.trickName = '';
     state.dialogVisible = false;
     state.newTrickName = '';
+    state.knowledgeIds = [];
 }
 function mouseMoveHandleelse(event: { pageX: number; pageY: number }) {
     const moveLeft = `${event.pageX - state.moveDataelse.x}px`;
@@ -692,9 +737,6 @@ function windowMouseup() {
                 state.cloneDiv = null;
                 return;
             }
-            console.log(btnT - topP + state.movePosition.y, btnL - leftP + state.movePosition.x);
-            console.log(state.contentPosition);
-
             state.list.push({
                 id: state.list.length,
                 position: `${btnT - state.contentPosition.top - 70},${btnL - state.contentPosition.left}`,
@@ -726,7 +768,6 @@ function zoom(scale: any) {
 }
 // 缩放
 const scaleFn = (type: string) => {
-    console.log(state.scale);
     switch (type) {
         // 放大
         case 'ZoomIn':
@@ -742,7 +783,6 @@ const scaleFn = (type: string) => {
     zoom(state.scale.toFixed(2));
 };
 const mousemoveHandler = (event: any) => {
-    // console.log(event);
     if (event.target?.id == 'diagramContainer') {
         state.movePosition = {
             x: event.offsetX,
@@ -782,6 +822,7 @@ watch(
 );
 
 onMounted(() => {
+    sreachKnowledgeFn();
     getQiNiuToken();
     searchAffirm();
     window.onmouseup = windowMouseup;
@@ -806,17 +847,20 @@ const {
     updatatoken,
     movePosition,
     listShow,
+    knowledgeList,
+    knowledgeIds,
 } = toRefs(state);
 </script>
 
 <style lang="scss" scoped>
 .operationWords {
     padding: 0 20px;
+
     .operation_btn {
-        padding: 0 20px;
         margin: 20px 20px 0 0;
         border-right: 1px solid #ccc;
     }
+
     .diagramContainer-warp {
         height: 80vh;
         overflow: hidden;
@@ -882,9 +926,11 @@ const {
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+
             &::v-deep(.z_index) {
                 z-index: 22 !important;
             }
+
             &::v-deep(.jtk-connector) {
                 z-index: 22 !important;
             }

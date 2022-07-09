@@ -168,6 +168,7 @@ class WebSocketClass {
                     const obj = this.transformResponse('MessageRequest')(res);
                     console.log('接收的消息====》', obj);
                     if (obj.data.length > 0) {
+                        console.log('byte数组转字符串===>', this.byteToString(obj.data));
                         obj.data = JSON.parse(this.byteToString(obj.data)); // byte数组转字符串
                     }
                     if (obj.state == 100) {

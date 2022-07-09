@@ -2,23 +2,20 @@
     <div class="knowledgeBase" style="--el-color-primary: #f39c12">
         <div class="header flex-sb">
             <div class="flex">
-                <!-- <span class="juz">知识库类型：</span>
-        <div style="margin-right: 10px">
-          <el-select v-model="listQuery.type"  placeholder="请选择">
-            <el-option
-              v-for="item in options"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-                </div>-->
                 <span class="juz">关键词：</span>
                 <div style="margin-right: 10px">
                     <el-input v-model="listQuery.keyword" clearable placeholder="请输入关键字" />
                 </div>
-                <el-button type="warning" :icon="Search" @click="getList"> 搜索 </el-button>
-                <el-button type="warning" plain :icon="CirclePlus" @click="dialogFn('')"> 添加知识库 </el-button>
+                <span class="juz">岗位：</span>
+                <div style="margin-right: 10px">
+                    <el-select v-model="listQuery.position" clearable placeholder="岗位">
+                        <el-option v-for="item in options_station" :key="item.id" :label="item.name" :value="item.id" />
+                    </el-select>
+                </div>
+                <el-button type="warning" :icon="Search" @click="getList">搜索</el-button>
+                <el-button type="warning" plain :icon="CirclePlus" @click="dialogFn('')">添加知识库</el-button>
+                <el-button type="warning" :icon="Upload" @click="expressExcel">导出</el-button>
+                <el-button type="warning" :icon="Coordinate" @click="updateCheck">审核</el-button>
             </div>
             <div>
                 <el-button type="warning" :icon="Delete" plain @click="batchDel()"> 批量删除 </el-button>
@@ -43,14 +40,28 @@
             </el-table-column>
             <el-table-column align="center" label="关键词" width="80">
                 <template #default="scope">
-                    <div>{{ filterCount(scope.row.keyword) }}</div>
+                    <div>{{ filterCount(scope.row?.keyword) }}</div>
+                </template>
+            </el-table-column>
+            <el-table-column align="center" label="岗位" width="80">
+                <template #default="scope">
+                    <div v-if="scope.row.position">
+                        {{ options_station.find((item:any) => item.id == scope.row?.position).name }}
+                    </div>
+                    <span v-else>无</span>
                 </template>
             </el-table-column>
             <el-table-column align="center" prop="label" label="知识库标签" />
+            <el-table-column align="center" label="状态" width="80">
+                <template #default="scope">
+                    <el-tag v-if="scope.row?.checkStatus == 1" type="success">已生效 </el-tag>
+                    <el-tag v-if="scope.row?.checkStatus == 0" type="danger">待审核 </el-tag>
+                </template>
+            </el-table-column>
             <el-table-column align="center" label="更新时间">
                 <template #default="scope">
-                    <div v-if="scope.row.updateTime">
-                        {{ parseTime(scope.row.updateTime, '{y}-{m}-{d} {h}:{i}:{s}') }}
+                    <div v-if="scope.row?.updateTime">
+                        {{ parseTime(scope.row?.updateTime, '{y}-{m}-{d} {h}:{i}:{s}') }}
                     </div>
                 </template>
             </el-table-column>
@@ -81,6 +92,7 @@
             width="40%"
             :close-on-click-modal="false"
             center
+            top="2vh"
             @close="handleClose"
         >
             <el-form
@@ -104,13 +116,25 @@
                         <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
                     </el-select>
                 </el-form-item>
-                <el-form-item label="关键词" prop="keyword">
-                    <el-input
-                        v-model="creatForm.keyword"
-                        type="textarea"
-                        placeholder="多个关键词之间用英文','分隔"
-                        :rows="4"
-                    />
+                <el-form-item label="岗位" prop="position">
+                    <el-select v-model="creatForm.position" clearable placeholder="岗位">
+                        <el-option v-for="item in options_station" :key="item.id" :label="item.name" :value="item.id" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="问题">
+                    <el-input v-model="keywords" placeholder="回车Enter添加问题" @keyup.enter="addKeyWord" />
+                    <div class="flex-col">
+                        <el-tag
+                            v-for="tag in keywordList"
+                            :key="tag.id"
+                            class="mt-4"
+                            type="warning"
+                            closable
+                            @close="keyWordClose(tag.keyword)"
+                        >
+                            {{ tag.keyword }}
+                        </el-tag>
+                    </div>
                 </el-form-item>
                 <el-form-item label="录音" prop="path">
                     <el-button
@@ -170,27 +194,31 @@
     </div>
 </template>
 <script setup lang="ts">
-import { ElMessageBox } from 'element-plus';
+import { ElLoading } from 'element-plus';
 import Recorder from 'js-audio-recorder';
 import * as qiniu from 'qiniu-js';
 import { v4 } from 'uuid';
-import { CirclePlus, Delete, Microphone, Remove, Edit, Search } from '@element-plus/icons-vue';
+import { CirclePlus, Delete, Microphone, Remove, Edit, Search, Upload, Coordinate } from '@element-plus/icons-vue';
 import {
     createKnowledge,
     updateKnowledge,
     sreachKnowledge,
     delKnowledge,
+    exportApi,
+    updateCheckTime,
 } from '@/api/modules/operationMang/knowledgeBase';
+import { getStation } from '@/api/modules/controlConsole/stationMan';
 import { qiNiuToken } from '@/api/qiniu';
 import { parseTime } from '@/utils/mineUtils';
 
 const {
-    proxy: { $tips },
+    proxy: { $tips, $confirmBox },
 } = getCurrentInstance() as any;
 
 const uuid = v4;
 
 const state = reactive<Record<string, any>>({
+    options_station: [],
     imgPathList: [
         {
             ipath: [],
@@ -280,19 +308,16 @@ const state = reactive<Record<string, any>>({
         //         trigger: 'click',
         //     },
         // ],
-        type: [
-            {
-                required: true,
-                message: '请选择知识库类型',
-                trigger: 'change',
-            },
-        ],
+        type: [{ required: true, message: '请选择知识库类型', trigger: 'change' }],
+        position: [{ required: true, message: '请选择岗位', trigger: 'change' }],
     },
     ids: null,
+    keywordList: [],
 });
 const UpLoadRef = ref();
 const form = ref();
 const videoPlay = ref();
+const keywords = ref('');
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const filterCount = (str: string): number => str.split(',').length;
 const deletePath = (index: number) => {
@@ -305,15 +330,51 @@ const addPath = () => {
         itext: '',
     });
 };
+// 添加问题
+const addKeyWord = () => {
+    if (!keywords.value) return $tips('warning', '请先输入问题！！！');
+    state.keywordList.push({
+        id: new Date().getTime() / 1000 + state.keywordList.length,
+        keyword: keywords.value,
+    });
+    keywords.value = '';
+};
+// 删除问题
+const keyWordClose = (keyword: string) => {
+    state.keywordList.splice(state.keywordList.indexOf(keyword), 1);
+};
 
+const expressExcel = () => {
+    $confirmBox('是否确认导出？', '确定', 'warning')
+        .then(() => {
+            const loading = ElLoading.service({
+                lock: true,
+                text: 'Loading',
+                background: 'rgba(0, 0, 0, 0.7)',
+                target: '.main',
+            });
+            exportApi().then((response) => {
+                if (response.status == 200) {
+                    const blob = new Blob([response.data]); // 创建一个blob对象
+                    const a = document.createElement('a'); // 创建一个<a></a>标签
+                    a.href = URL.createObjectURL(blob); // response is a blob
+                    a.download = `知识库.txt`; // 文件名称
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                } else {
+                    $tips('error', response.data.msg);
+                }
+                loading.close();
+            });
+        })
+        .catch(() => null);
+};
 // 批量删除
 const batchDel = () => {
     if (!state.ids) return $tips('warning', '请先选择下列数据！！！');
-    ElMessageBox.confirm('此操作将永久删除, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-    })
+    $confirmBox('此操作将永久删除, 是否继续?', '确定', 'warning')
         .then(() => {
             delKnowledge(state.ids).then((res: { data: { status: number; msg: any } }) => {
                 if (res.data.status === 200) {
@@ -329,11 +390,7 @@ const batchDel = () => {
         .catch(() => null);
 };
 const del = (row: { id: any }) => {
-    ElMessageBox.confirm('此操作将永久删除, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-    })
+    $confirmBox('此操作将永久删除, 是否继续?', '确定', 'warning')
         .then(() => {
             delKnowledge(row.id).then((res: { data: { status: number; msg: any } }) => {
                 if (res.data.status === 200) {
@@ -369,12 +426,31 @@ const getList = () => {
         state.listLoading = false;
     });
 };
+const updateCheck = () => {
+    updateCheckTime().then((res) => {
+        if (res.data.status === 200) {
+            $tips('success', res.data.msg);
+            getList();
+        } else {
+            $tips('error', res.data.msg);
+        }
+    });
+};
 const dialogFn = (row: any) => {
     if (state.imgPathList.length == 0) {
         addPath();
     }
+    console.log(row);
     if (row) {
         state.creatForm = row;
+        state.keywordList = row.keyword.split(',').map((item: string, index: number) => {
+            return {
+                id: index,
+                keyword: item,
+            };
+        });
+        console.log(state.keywordList);
+
         if (row.imgPath) {
             state.imgPathList = [];
             (JSON.parse(row.imgPath) as any[]).forEach((item) => {
@@ -408,6 +484,7 @@ const handleClose = () => {
     state.recorderStatus = false; // 录音状态
     state.recorder = null;
     state.imgPathList = [];
+    state.keywordList = [];
 };
 const handleSizeChange = (val: number) => {
     state.listQuery.limit = val;
@@ -538,6 +615,7 @@ const submitForm = () => {
             });
         }
     });
+    state.creatForm.keyword = state.keywordList.map((item: { keyword: any }) => item.keyword).join(',');
     form.value.validate((valid: any) => {
         if (valid) {
             (state.dialogTitle === '添加知识库' ? createKnowledge : updateKnowledge)(state.creatForm).then(
@@ -578,11 +656,15 @@ const getQiNiuToken = () => {
 onUpdated(() => {
     addTableIndex();
 });
-onMounted(() => {
+onActivated(() => {
+    getStation().then((res) => {
+        state.options_station = res.data.data;
+    });
     getQiNiuToken();
     getList();
 });
 const {
+    options_station,
     tableData,
     listQuery,
     listLoading,
@@ -597,6 +679,7 @@ const {
     countDownNum,
     token,
     imgPathList,
+    keywordList,
 } = toRefs(state);
 </script>
 <style lang="scss" scoped>
@@ -605,10 +688,9 @@ const {
 
     .header {
         padding-right: 20px;
-    }
-
-    span {
-        font-size: 14px;
+        span {
+            font-size: 14px;
+        }
     }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
     <el-container>
-        <el-header height="auto" style="font-size: 14px; border-bottom: 1px solid #e5e7eb">
+        <el-header height="auto" style="font-size: 12px; border-bottom: 1px solid #e5e7eb">
             <div class="flex">
                 <span class="juz">开启知识库自动应答</span>
                 <span class="juz mr-5">
@@ -11,8 +11,21 @@
                     size="large"
                     :disabled="disabled"
                     style="--el-switch-on-color: #e6a23c"
+                    :before-change="beforeSwitch"
                     @change="changeSwitch"
                 />
+                <span class="juz ml-5 mr-2">岗位:</span>
+                <div class="juz">
+                    <el-select
+                        v-model="state.stationId"
+                        :disabled="disabled"
+                        size="small"
+                        placeholder="请选择岗位"
+                        @change="changeStation"
+                    >
+                        <el-option v-for="item in options_station" :key="item.id" :label="item.name" :value="item.id" />
+                    </el-select>
+                </div>
             </div>
         </el-header>
         <el-container>
@@ -61,6 +74,7 @@
 </template>
 
 <script setup lang="ts">
+import { ElLoading } from 'element-plus';
 import FriendList from './friendList/index.vue';
 import Content from './content/index.vue';
 import VerbalTrickVue from './verbalTR/index.vue';
@@ -69,18 +83,20 @@ import Store from '@/store/message';
 import { downFile } from '@/utils/mineUtils';
 import WebSocketClass from '@/utils/webSocket';
 import userStore from '@/store/user';
+import { getStation } from '@/api/modules/controlConsole/stationMan';
 
 const {
     proxy: { $tips },
 } = getCurrentInstance() as any;
-const $websocket = new WebSocketClass('192.168.3.241:18888');
-// const $websocket = new WebSocketClass('124.71.190.1:18888');
+// const $websocket = new WebSocketClass('192.168.3.241:18888');
+const $websocket = new WebSocketClass('124.71.190.1:18888');
 const myMessage = Store();
 const state = reactive({
     isValue: false,
     disabled: false,
     dialogVisible: false,
     isHidden: false,
+    stationId: '',
     dataList: [[], []] as [any[], any[]],
     isContentMess: false,
     contacts: [] as any[],
@@ -89,6 +105,7 @@ const state = reactive({
     isContacts: false,
     loading: null as unknown as { close: Function } | null,
     msgType: '',
+    options_station: [] as { id: number; name: string }[],
 });
 const fileUrl = ref('');
 const chatContent = ref();
@@ -97,7 +114,21 @@ const handleClose = () => {
     state.imgBase64 = '';
     state.msgType = '';
 };
-
+const changeStation = (val: number) => {
+    if (!myMessage.activeAccountInfo.id) return;
+    $websocket.webSocketSendMsg({
+        status: '18',
+        state: val,
+        data: {},
+    });
+};
+const beforeSwitch = () => {
+    if (!state.stationId) {
+        $tips('warning', '未选择岗位！！！');
+        return false;
+    }
+    return true;
+};
 const changeSwitch = (val: any) => {
     if (!myMessage.activeAccountInfo.id) return;
     $websocket.webSocketSendMsg({
@@ -232,13 +263,18 @@ $websocket.getWebSocketMsg((obj: any) => {
             state.isChatList = true;
             break;
         case '17':
-            if (obj.state == 200) {
-                ['7', '8', '9', '11'].forEach((item) => {
-                    $websocket.webSocketSendMsg({
-                        status: item,
-                        data: { userId: `${userStore().userId}`, wechatId: obj.weChatId },
-                    });
+            // if (obj.state == 200) {
+            ['7', '8', '9', '11'].forEach((item) => {
+                $websocket.webSocketSendMsg({
+                    status: item,
+                    data: { userId: `${userStore().userId}`, wechatId: obj.weChatId },
                 });
+            });
+            // }
+            break;
+        case '18':
+            if (obj.state == 200) {
+                $tips('success', '修改成功！！！');
             }
             break;
         // 获取base64二维码
@@ -246,9 +282,20 @@ $websocket.getWebSocketMsg((obj: any) => {
             // eslint-disable-next-line no-return-assign
             if (obj.state == 100) return (myMessage.isLogin = false);
             state.imgBase64 = `data:image/png;base64,${obj.data.qrCode}`;
+            clearLoading();
             break;
         // 扫码登录结果
         case '102':
+            const loadings = ElLoading.service({
+                lock: true,
+                text: '登录成功,数据加载中...',
+                background: 'rgba(0, 0, 0, 0.7)',
+                target: '.login-dialog',
+            });
+            loading(loadings, true);
+            break;
+        case '106':
+            clearLoading();
             $websocket.webSocketSendMsg({ status: '10' });
             myMessage.isLogin = false;
             $tips('success', obj.msg);
@@ -273,6 +320,7 @@ watchEffect(() => {
     state.dataList[1] = state.contacts;
     state.disabled = !myMessage.activeAccountInfo.id;
     state.isValue = myMessage.activeAccountInfo.open == '1';
+    state.stationId = myMessage.activeAccountInfo.position || '';
 });
 onMounted(() => {
     setTimeout(() => {
@@ -280,7 +328,13 @@ onMounted(() => {
         $websocket.webSocketSendMsg({ status: '10' });
     }, 800);
 });
-const { isValue, dialogVisible, isHidden, isContentMess, imgBase64, msgType, disabled } = toRefs(state);
+onActivated(() => {
+    getStation().then((res) => {
+        state.options_station = res.data.data;
+    });
+});
+const { isValue, dialogVisible, isHidden, isContentMess, imgBase64, msgType, disabled, options_station } =
+    toRefs(state);
 </script>
 
 <style lang="scss" scoped>

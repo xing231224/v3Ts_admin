@@ -1,29 +1,29 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-21 14:59:41
- * @LastEditTime: 2022-06-10 09:19:51
+ * @LastEditTime: 2022-07-06 15:17:28
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3-ts_demo\src\views\Layout\components\navigation_bar\index.vue
 -->
 <template>
-    <div v-show="routeList.length > 0" :class="`tabbed flex-sb`">
+    <div v-if="state.routeList?.length > 0" class="tabbed flex-sb">
         <ul>
-            <li
-                v-for="item in routeList"
-                :key="item.path"
-                :class="
-                    item.path == activePath
-                        ? 'active animate__animated animate__backInDown animate__faster'
-                        : 'animate__animated animate__backInDown animate__faster'
-                "
-                @click="goPath(item.path)"
-            >
-                <span>{{ item.title }}</span>
-                <span v-if="routeList.length != 1" class="close" @click.stop="delNavRouter(item.path)">
-                    <i-ion-ios-close-circle-outline />
-                </span>
-            </li>
+            <template v-for="item in state.routeList" :key="item?.name">
+                <li
+                    :class="
+                        item?.path == activePath
+                            ? 'active animate__animated animate__backInDown animate__faster'
+                            : 'animate__animated animate__backInDown animate__faster'
+                    "
+                    @click="goPath(item?.path)"
+                >
+                    <span>{{ item?.title }}</span>
+                    <span v-show="state.routeList?.length != 1" class="close" @click.stop="delNavRouter(item.path)">
+                        <i-ion-ios-close-circle-outline />
+                    </span>
+                </li>
+            </template>
         </ul>
         <div class="flex">
             <el-dropdown class="avatar-container" trigger="click">
@@ -35,7 +35,6 @@
                             </div>
                         </el-tooltip>
                     </template>
-                    <template #default></template>
                 </el-popover>
                 <template #dropdown>
                     <el-dropdown-menu class="user-dropdown">
@@ -53,7 +52,7 @@
                     </el-dropdown-menu>
                 </template>
             </el-dropdown>
-            <span class="juz" style="font-size: 14px">喜羊羊</span>
+            <span class="juz" style="font-size: 14px">{{ userStore().mobile }}</span>
         </div>
     </div>
 </template>
@@ -62,18 +61,28 @@ import Store from '@/store/routers';
 import userStore from '@/store/user';
 import tx from '@/assets/age1f-rzq97.png';
 
+interface routeObj {
+    path: string;
+    name: any;
+    title: any;
+}
+
 const Route = useRoute();
 const Router = useRouter();
-const routeList = ref();
+const routerStore = Store();
+const state = reactive({
+    routeList: [] as routeObj[],
+});
 const activePath = ref(Route.path);
 
 const delNavRouter = (path: string) => {
-    Store().delNavRouter(path);
-    const navList = Store().getNavRouter;
+    routerStore.delNavRouter(path);
+    const navList = routerStore.getNavRouter;
     if (navList.length > 0) {
         Router.push(navList[navList.length - 1].path);
     }
 };
+
 const logout = () => {
     userStore()
         .loginOut()
@@ -81,11 +90,19 @@ const logout = () => {
             window.location.reload();
         });
 };
+
 watchEffect(() => {
-    routeList.value = computed(() => Store().getNavRouter).value;
+    state.routeList = routerStore.navRouters;
+    if (!userStore().mobile) {
+        userStore().$patch({
+            mobile: localStorage.getItem('nikename') || '',
+        });
+    }
 });
 watch(Route, (n) => {
-    activePath.value = n.path;
+    nextTick(() => {
+        activePath.value = n.path;
+    });
 });
 const goPath = (path: string) => {
     if (path == Route.path) return;

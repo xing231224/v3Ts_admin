@@ -2,7 +2,7 @@
  * @Author: xing 1981193009@qq.com
  * @Date: 2022-06-20 15:54:35
  * @LastEditors: xing 1981193009@qq.com
- * @LastEditTime: 2022-06-27 18:46:08
+ * @LastEditTime: 2022-07-06 15:32:23
  * @FilePath: \web_wxChat\src\views\clientHandle\index.vue
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
@@ -11,14 +11,15 @@
         <el-button type="warning" @click="create()">创建任务</el-button>
         <el-table v-loading="tableLoading" :data="tableData" border style="width: 100%; margin: 20px auto">
             <el-table-column align="center" prop="name" label="任务名称" width="250" />
+            <el-table-column align="center" prop="wechatName" label="微企" width="100" />
             <el-table-column align="center" label="任务时间" width="110">
                 <template #default="scope">
-                    {{ parseTime(scope.row.time, '{h}:{i}') }}
+                    {{ parseTime(scope.row?.time, '{h}:{i}') }}
                 </template>
             </el-table-column>
             <el-table-column align="center" label="任务星期">
                 <template #default="scope">
-                    <el-tag v-for="item in scope.row.weeks" :key="item" class="ml-2 mb-2" type="warning">{{
+                    <el-tag v-for="item in scope.row?.weeks" :key="item" class="ml-2 mb-2" type="warning">{{
                         options_week.find((row) => row.value == item)?.label
                     }}</el-tag>
                 </template>
@@ -28,10 +29,10 @@
                     <div class="flex contacts">
                         <span>内部人员：</span>
                         <div class="flex-col">
-                            <div :class="`contacts_list ${!scope.row.isInternal ? 'over_hidden' : ''}`">
+                            <div :class="`contacts_list ${!scope.row?.isInternal ? 'over_hidden' : ''}`">
                                 <el-scrollbar>
                                     <div
-                                        v-for="item in scope.row.internalContacts"
+                                        v-for="item in scope.row?.internalContacts"
                                         :key="item.id"
                                         :title="item.name"
                                         class="flex"
@@ -43,10 +44,10 @@
                                     </div>
                                 </el-scrollbar>
                             </div>
-                            <div v-if="scope.row.internalContacts.length > 3" class="pull-down">
+                            <div v-if="scope.row.internalContacts?.length > 3" class="pull-down">
                                 <el-icon>
-                                    <CaretBottom v-show="!scope.row.isInternal" @click="scope.row.isInternal = true" />
-                                    <CaretTop v-show="scope.row.isInternal" @click="scope.row.isInternal = false" />
+                                    <CaretBottom v-show="!scope.row?.isInternal" @click="scope.row.isInternal = true" />
+                                    <CaretTop v-show="scope.row?.isInternal" @click="scope.row.isInternal = false" />
                                 </el-icon>
                             </div>
                         </div>
@@ -54,10 +55,10 @@
                     <div class="flex contacts">
                         <span>外部人员：</span>
                         <div class="flex-col">
-                            <div :class="`contacts_list ${!scope.row.isExternal ? 'over_hidden' : ''}`">
+                            <div :class="`contacts_list ${!scope.row?.isExternal ? 'over_hidden' : ''}`">
                                 <el-scrollbar height="168px">
                                     <div
-                                        v-for="item in scope.row.externalContacts"
+                                        v-for="item in scope.row?.externalContacts"
                                         :key="item.id"
                                         :title="item.name"
                                         class="flex"
@@ -69,10 +70,10 @@
                                     </div>
                                 </el-scrollbar>
                             </div>
-                            <div v-if="scope.row.externalContacts.length > 3" class="pull-down">
+                            <div v-if="scope.row.externalContacts?.length > 3" class="pull-down">
                                 <el-icon>
-                                    <CaretBottom v-show="!scope.row.isExternal" @click="scope.row.isExternal = true" />
-                                    <CaretTop v-show="scope.row.isExternal" @click="scope.row.isExternal = false" />
+                                    <CaretBottom v-show="!scope.row?.isExternal" @click="scope.row.isExternal = true" />
+                                    <CaretTop v-show="scope.row?.isExternal" @click="scope.row.isExternal = false" />
                                 </el-icon>
                             </div>
                         </div>
@@ -82,7 +83,7 @@
             <el-table-column align="center" label="话术" width="200">
                 <template #default="scope">
                     <el-tag
-                        v-for="item in JSON.parse(scope.row.scenariosList)"
+                        v-for="item in JSON.parse(scope.row?.scenariosList)"
                         :key="item"
                         class="ml-2 mb-2"
                         type="warning"
@@ -98,6 +99,7 @@
                         :active-value="1"
                         :inactive-value="2"
                         style="--el-switch-on-color: #e6a23c"
+                        @change="changeStatus(scope.row)"
                     />
                 </template>
             </el-table-column>
@@ -154,6 +156,16 @@
                         value-format="x"
                         format="HH:mm"
                         @change="(val) => (form.time = Number(val) / 1000 + '')"
+                    />
+                </el-form-item>
+                <el-form-item label="是否循环">
+                    <el-switch
+                        v-model="form.repetition"
+                        :disabled="dialogType == 'edit'"
+                        size="large"
+                        :active-value="1"
+                        :inactive-value="0"
+                        style="--el-switch-on-color: #e6a23c"
                     />
                 </el-form-item>
                 <el-form-item label="企微" prop="wechatId">
@@ -258,7 +270,14 @@
 <script setup lang="ts">
 import type { FormInstance, FormRules } from 'element-plus';
 import { CaretBottom, CaretTop } from '@element-plus/icons-vue';
-import { searchTask, createTask, updateTask, deleteTask, getwechatAcc } from '@/api/modules/controlConsole/timedTask';
+import {
+    searchTask,
+    createTask,
+    updateTask,
+    deleteTask,
+    getwechatAcc,
+    updateTaskStatus,
+} from '@/api/modules/controlConsole/timedTask';
 import { getWechatList } from '@/api/modules/mrrandaIM';
 import { sreachScenarios } from '@/api/modules/operationMang/operationword';
 import { parseTime } from '@/utils/mineUtils';
@@ -273,7 +292,7 @@ interface datatype {
     avatorUrl: string;
 }
 interface tableRowT {
-    id: number;
+    id: string;
     name: string;
     weeks: string[];
     time: string;
@@ -284,6 +303,20 @@ interface tableRowT {
     internalsWechatId: string;
     externalsWechatId: string;
     scenariosList: string;
+    wechatName: string;
+    repetition: number;
+}
+interface formT {
+    id?: string;
+    name: string;
+    repetition: number;
+    wechatName: string;
+    weeks: number[];
+    time: string;
+    scenarioIds: string[];
+    wechatId: string;
+    internals: [];
+    externals: [];
 }
 
 const formRef = ref<FormInstance>();
@@ -301,22 +334,14 @@ const options_week = [
 const state = reactive({
     tableData: [],
     dialogType: 'create',
-    options_scenarios: [] as { id: number; name: string }[],
-    options_wechatIds: [] as { id: number; name: string; avatorUrl: string }[],
+    options_scenarios: [] as { id: string; name: string }[],
+    options_wechatIds: [] as { id: string; name: string; avatorUrl: string }[],
     externalList: [] as datatype[],
     externalShow: [] as datatype[],
     internalList: [] as datatype[],
     internalShow: [] as datatype[],
     time: 0 as number,
-    form: {
-        name: '',
-        weeks: [] as number[],
-        time: '',
-        scenarioIds: [],
-        wechatId: '',
-        internals: [],
-        externals: [],
-    },
+    form: {} as formT,
 });
 
 const formRules = reactive<FormRules>({
@@ -325,9 +350,18 @@ const formRules = reactive<FormRules>({
     weeks: [{ required: true, message: '请选择任务星期', trigger: 'change' }],
     time: [{ required: true, message: '请选择任务时间', trigger: 'change' }],
     wechatId: [{ required: true, message: '请选择企微', trigger: 'change' }],
-    externals: [{ required: true, message: '请选择外部联系人', trigger: 'change' }],
-    internals: [{ required: true, message: '请选择外部联系人', trigger: 'change' }],
+    // externals: [{ required: true, message: '请选择外部联系人', trigger: 'change' }],
+    // internals: [{ required: true, message: '请选择内部联系人', trigger: 'change' }],
 });
+const changeStatus = (obj: { id: number; status: number }) => {
+    updateTaskStatus(obj).then((res) => {
+        if (res.data.status === 200) {
+            $tips('success', res.data.msg);
+        } else {
+            $tips('error', res.data.msg);
+        }
+    });
+};
 const getList = () => {
     tableLoading.value = true;
     /* eslint-disable no-param-reassign */
@@ -341,6 +375,7 @@ const getList = () => {
     });
 };
 const create = () => {
+    state.dialogType = 'create';
     formRef.value?.clearValidate();
     dialogVisible.value = true;
 };
@@ -349,6 +384,7 @@ const delRow = (row: tableRowT) => {
         deleteTask(row.id).then((res) => {
             if (res.data.status === 200) {
                 $tips('success', res.data.msg);
+                getList();
             } else {
                 $tips('error', res.data.msg);
             }
@@ -358,10 +394,13 @@ const delRow = (row: tableRowT) => {
 const changeWecaht = (val: string, cb: Function) => {
     state.externalList = [];
     if (val) {
+        state.form.wechatName = state.options_wechatIds.find((item) => item.id == val)?.name as string;
+
         getWechatList(val).then((res) => {
             state.externalList = res.data.data.external;
             state.internalList = res.data.data.internal;
-            cb();
+            // eslint-disable-next-line no-unused-expressions
+            cb && cb();
         });
     }
 };
@@ -378,19 +417,20 @@ const changeInternal = (val: string[]) => {
     });
 };
 const editRow = (row: tableRowT) => {
-    console.log(row);
-
     state.dialogType = 'edit';
     dialogVisible.value = true;
     state.time = Number(row.time) * 1000;
     state.form = {
+        id: row.id,
+        wechatName: row.wechatName,
+        repetition: row.repetition,
         name: row.name,
         weeks: row.weeks.map((item) => Number(item)),
         time: row.time,
-        scenarioIds: JSON.parse(row.scenariosList),
+        scenarioIds: row.scenariosList ? JSON.parse(row.scenariosList) : [],
         wechatId: row.wechatId,
-        internals: JSON.parse(row.internalsWechatId),
-        externals: JSON.parse(row.externalsWechatId),
+        internals: row.internalsWechatId ? JSON.parse(row.internalsWechatId) : [],
+        externals: row.externalsWechatId ? JSON.parse(row.externalsWechatId) : [],
     };
     changeWecaht(row.wechatId, () => {
         changeExternal(state.form.externals);
@@ -404,6 +444,8 @@ const handleClose = () => {
     state.internalShow = [];
     state.time = 0;
     state.form = {
+        repetition: 0,
+        wechatName: '',
         name: '',
         weeks: [],
         time: '',
@@ -418,7 +460,7 @@ const createOrEdit = async (formEl: FormInstance | undefined) => {
     if (!formEl) return;
     await formEl.validate((valid, fields) => {
         if (valid) {
-            createTask(state.form).then((res) => {
+            (state.dialogType == 'create' ? createTask : updateTask)(state.form).then((res) => {
                 if (res.data.status == 200) {
                     $tips('success', res.data.msg);
                     getList();

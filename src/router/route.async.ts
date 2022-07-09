@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-02-12 15:53:45
- * @LastEditTime: 2022-06-24 14:47:56
+ * @LastEditTime: 2022-07-04 17:26:44
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \vitecamp\src\router\route.async.ts
@@ -88,6 +88,22 @@ const asyncRoutes: Array<RouteRecordRaw> = [
         ],
     },
     {
+        path: '/clientStatus',
+        name: 'clientStatus',
+        component: Layout,
+        meta: {
+            title: '客户端状态',
+            keepAlive: false,
+            icon: 'pc_status',
+        },
+        children: [
+            {
+                path: '',
+                component: () => import('@/views/controlConsole/clientStatus/index.vue'),
+            },
+        ],
+    },
+    {
         path: '/controlConsole',
         name: 'controlConsole',
         component: Layout,
@@ -107,14 +123,23 @@ const asyncRoutes: Array<RouteRecordRaw> = [
                 name: 'timedTask',
                 component: () => import('@/views/controlConsole/timedTask/index.vue'),
             },
+            // {
+            //     path: 'clientStatus',
+            //     meta: {
+            //         title: '客户端状态',
+            //         icon: 'pc_status',
+            //     },
+            //     name: 'clientStatus',
+            //     component: () => import('@/views/controlConsole/clientStatus/index.vue'),
+            // },
             {
-                path: 'clientStatus',
+                path: 'stationMan',
                 meta: {
-                    title: '客户端状态',
-                    icon: 'pc_status',
+                    title: '岗位管理',
+                    icon: 'station',
                 },
-                name: 'clientStatus',
-                component: () => import('@/views/controlConsole/clientStatus/index.vue'),
+                name: 'stationMan',
+                component: () => import('@/views/controlConsole/stationMan/index.vue'),
             },
         ],
     },

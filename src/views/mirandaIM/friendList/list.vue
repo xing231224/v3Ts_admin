@@ -1,8 +1,13 @@
 <template>
     <!-- 联系人 -->
     <template v-if="active == 'third'">
-        <el-menu class="el-menu-vertical-demo" style="height: calc(100vh - 250px)" unique-opened mode="vertical"
-            active-text-color="#F39C12">
+        <el-menu
+            class="el-menu-vertical-demo"
+            style="height: calc(100vh - 250px)"
+            unique-opened
+            mode="vertical"
+            active-text-color="#F39C12"
+        >
             <template v-for="item in lists" :key="item.title">
                 <el-sub-menu :index="item.title">
                     <template #title>
@@ -12,14 +17,22 @@
                         <el-menu-item-group v-for="row in item.children" :key="row.indexId">
                             <el-menu-item :index="row.indexId" @click="openNewWindow(row)">
                                 <el-badge :hidden="!row.offLineNum" :value="row.offLineNum" class="juz">
-                                    <el-avatar shape="square" style="display: block" :src="
-                                        row.avatorUrl
-                                            ? row.avatorUrl
-                                            : 'https://imgsa.baidu.com/forum/pic/item/023b5bb5c9ea15ce85b34b6eb1003af33a87b27c.jpg'
-                                    " />
+                                    <el-avatar
+                                        shape="square"
+                                        style="display: block"
+                                        :src="
+                                            row.avatorUrl
+                                                ? row.avatorUrl
+                                                : 'https://imgsa.baidu.com/forum/pic/item/023b5bb5c9ea15ce85b34b6eb1003af33a87b27c.jpg'
+                                        "
+                                    />
                                 </el-badge>
-                                <span style="margin-left: 10px; font-size: 12px" class="account_name"
-                                    :title="row.name">{{ row.name }}</span>
+                                <span
+                                    style="margin-left: 10px; font-size: 12px"
+                                    class="account_name"
+                                    :title="row.name"
+                                    >{{ row.name }}</span
+                                >
                             </el-menu-item>
                         </el-menu-item-group>
                     </el-scrollbar>
@@ -37,11 +50,17 @@
                             <el-button size="small" type="warning" @click="loginOutAccoun(item)">退出子账号</el-button>
                         </div>
                         <template #reference>
-                            <div class="list_li"
-                                :class="item.id == activeAccountInfo.id ? `flex-sb active` : `flex-sb`">
+                            <div
+                                class="list_li"
+                                :class="item.id == activeAccountInfo.id ? `flex-sb active` : `flex-sb`"
+                            >
                                 <el-badge :hidden="!item.offNumTatal" :value="item.offNumTatal">
-                                    <el-avatar shape="square" size="small" style="display: block"
-                                        :src="item.avatorUrl" />
+                                    <el-avatar
+                                        shape="square"
+                                        size="small"
+                                        style="display: block"
+                                        :src="item.avatorUrl"
+                                    />
                                 </el-badge>
                                 <span class="juz account_name" :title="item.name">{{ item.name }}</span>
                             </div>
@@ -51,21 +70,31 @@
             </template>
             <!-- 聊天列表 -->
             <template v-if="active == 'second'">
-                <li v-for="item in lists" :id="`abc${item.conversationId}`" :key="item.conversationId" class="list_li"
-                    :class="item.conversationId == activeId ? `flex active` : `flex`" @click="openMessage(item)"
-                    @contextmenu="openContextmenu($event, item)">
+                <li
+                    v-for="item in lists"
+                    :id="`abc${item.conversationId}`"
+                    :key="item.conversationId"
+                    class="list_li"
+                    :class="item.conversationId == activeId ? `flex active` : `flex`"
+                    @click="openMessage(item)"
+                    @contextmenu="openContextmenu($event, item)"
+                >
                     <el-badge :hidden="!item.offLineNum" :value="item.offLineNum" class="juz">
-                        <el-avatar shape="square" style="display: block" :src="
-                            item.avatorUrl
-                                ? item.avatorUrl
-                                : 'https://imgsa.baidu.com/forum/pic/item/023b5bb5c9ea15ce85b34b6eb1003af33a87b27c.jpg'
-                        " />
+                        <el-avatar
+                            shape="square"
+                            style="display: block"
+                            :src="
+                                item.avatorUrl
+                                    ? item.avatorUrl
+                                    : 'https://imgsa.baidu.com/forum/pic/item/023b5bb5c9ea15ce85b34b6eb1003af33a87b27c.jpg'
+                            "
+                        />
                     </el-badge>
                     <div class="flex-col">
                         <div class="flex-sb">
                             <span class="nickname" :title="item.name">{{ item.name }}</span>
                             <span v-if="item.offLineMsg?.sendTimeStamp">{{
-                                    timeDispose(item.offLineMsg?.sendTimeStamp)
+                                timeDispose(item.offLineMsg?.sendTimeStamp)
                             }}</span>
                         </div>
                         <p v-if="item.offLineMsg?.msgType == '401'" class="nickname">
@@ -74,11 +103,11 @@
                         <p v-else-if="item.offLineMsg?.msgType == '408'">[表情]</p>
                         <p v-else>
                             {{
-                                    item.offLineMsg?.msgType == '402'
-                                        ? '[图片]'
-                                        : item.offLineMsg?.msgType == '403'
-                                            ? '[视频]'
-                                            : '[文件]'
+                                item.offLineMsg?.msgType == '402'
+                                    ? '[图片]'
+                                    : item.offLineMsg?.msgType == '403'
+                                    ? '[视频]'
+                                    : '[文件]'
                             }}
                         </p>
                     </div>
@@ -128,7 +157,7 @@ const state = reactive({
 // 切换消息体
 const openMessage = (item: any) => {
     if (activeId.value == item.conversationId) return;
-    clearLoading()
+    clearLoading();
     // eslint-disable-next-line no-param-reassign
     item.offLineNum = 0;
     myMessage.setContextObj(item);
@@ -191,6 +220,7 @@ const accounts = computed(() => myMessage.accounts);
 // 切换多账号id
 const select = (row: any) => {
     if (state.activeAccountInfo.id == row.id) return;
+    clearLoading();
     const loading = ElLoading.service({
         lock: true,
         text: 'Loading',

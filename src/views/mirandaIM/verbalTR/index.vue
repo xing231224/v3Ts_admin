@@ -22,12 +22,39 @@
         <el-tabs v-model="activeName" stretch :before-leave="beforeLeave" class="demo-tabs">
             <el-tab-pane label="公司话术" name="first">
                 <div class="verbal_Tree">
-                    <el-input v-model="input2" class="verbal_search" placeholder="Please Input" :prefix-icon="Search" />
-                    <el-radio-group v-model="radioId" class="el_verbal_Tree">
+                    <div class="flex">
+                        <el-input
+                            v-model="input2"
+                            class="verbal_search"
+                            placeholder="Please Input"
+                            :prefix-icon="Search"
+                        />
+                        <el-tooltip content="刷新" placement="bottom" effect="light">
+                            <el-button
+                                type="warning"
+                                style="margin-left: 20px"
+                                :icon="Loading"
+                                :loading="isLoading"
+                                circle
+                                @click="reflush"
+                            />
+                        </el-tooltip>
+                    </div>
+                    <!-- <el-radio-group v-model="radioId" class="el_verbal_Tree">
                         <el-radio v-for="item in scenariosList" :key="item.id" :label="item.id">{{
                             item.name
                         }}</el-radio>
-                    </el-radio-group>
+                    </el-radio-group> -->
+                    <el-tree
+                        ref="treeRef"
+                        :data="scenariosList"
+                        accordion
+                        check-strictly
+                        show-checkbox
+                        node-key="id"
+                        :props="{ children: 'hxTelFlowNodes', label: 'name' }"
+                        @check-change="checkChange"
+                    ></el-tree>
                     <div v-show="scenariosList.length == 0" class="flex-col" style="height: 100%; margin-top: 60px">
                         <!-- <span style="font-size: 160px">
                             <svg-icon name="undraw_no_data_re_kwbl" style="margin: 0 auto"></svg-icon>
@@ -104,11 +131,11 @@
 
 <script setup lang="ts">
 import { ElLoading } from 'element-plus';
-import { Search, Position, InfoFilled } from '@element-plus/icons-vue';
+import { Search, Position, InfoFilled, Loading } from '@element-plus/icons-vue';
 import { TabPanelName } from 'element-plus/lib/components';
 import Store from '@/store/message';
 import { sendScenarios } from '@/api/modules/operationMang/verbalTrickPush';
-import { sreachScenarios, getBigFile } from '@/api/modules/operationMang/operationword';
+import { getDetailScenarios, getBigFile } from '@/api/modules/operationMang/operationword';
 import { getWechatList } from '@/api/modules/mrrandaIM';
 import Transfer from './transfer.vue';
 import { downFile, parseTime } from '@/utils/mineUtils';
@@ -120,12 +147,15 @@ const {
 } = getCurrentInstance() as any;
 const $websocket = inject('websocket') as WebSocketClass;
 const myMessage = Store();
+const treeRef = ref();
 const state = reactive({
     activeName: 'first',
     activeWeChat: 'internal',
+    isLoading: false,
     input2: '',
     scenariosList: [] as { id: number; name: string; isCheckbox: boolean }[],
     radioId: '',
+    flowNode: 0,
     dialogVisible: false,
     wechatList: {} as { internal: any[]; external: any[]; internalCache: any[]; externalCache: any[] },
     bigFileList: [] as {
@@ -136,17 +166,35 @@ const state = reactive({
         sendTimeStamp: string;
     }[],
 });
-const getScenarios = () => {
-    sreachScenarios({ status: '1' }).then((res) => {
-        state.scenariosList = res.data.data.map((item: any) => {
-            return {
-                ...item,
-                isCheckbox: false,
-            };
-        });
-    });
+
+const checkChange = (node: any, prop: boolean) => {
+    state.radioId = '';
+    state.flowNode = 0;
+    if (!prop && state.flowNode == node.id) return;
+    treeRef.value?.setCheckedKeys([], false);
+    treeRef.value?.setCheckedKeys([node.id], false);
+    state.radioId = node.hxTelFlowNodes ? node.id : node.scenariosId;
+    state.flowNode = node.hxTelFlowNodes ? 0 : node.id;
 };
 
+const getScenarios = () => {
+    // sreachScenarios({ status: '1' }).then((res) => {
+    //     state.scenariosList = res.data.data.map((item: any) => {
+    //         return {
+    //             ...item,
+    //             isCheckbox: false,
+    //         };
+    //     });
+    // });
+    getDetailScenarios().then((res) => {
+        state.scenariosList = res.data.data;
+    });
+};
+const reflush = () => {
+    state.isLoading = false;
+    getScenarios();
+    state.isLoading = true;
+};
 // 获取大文件列表
 const getGigFileList = (conversationId = myMessage.activeId) => {
     getBigFile({ wechatId: myMessage.activeAccountInfo.id, conversationId }).then((res) => {
@@ -193,7 +241,13 @@ const send = () => {
         target: document.querySelector('.dialogVisible') as HTMLElement,
     });
     const type = state.activeWeChat == 'internal' ? 1 : 2;
-    sendScenarios({ scenarios: state.radioId, ids, type, wechatId: myMessage.activeAccountInfo.id }).then((res) => {
+    sendScenarios({
+        scenarios: state.radioId,
+        ids,
+        type,
+        wechatId: myMessage.activeAccountInfo.id,
+        flowNode: state.flowNode,
+    }).then((res) => {
         if (res.data.status == 200) {
             $tips('success', res.data.msg);
             loadingInstance.close();
@@ -233,7 +287,7 @@ onMounted(() => {
 defineExpose({
     getGigFileList,
 });
-const { activeName, input2, scenariosList, radioId, dialogVisible, wechatList, activeWeChat, bigFileList } =
+const { activeName, input2, scenariosList, dialogVisible, wechatList, activeWeChat, bigFileList, isLoading } =
     toRefs(state);
 </script>
 

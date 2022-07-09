@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-04-06 10:24:57
- * @LastEditTime: 2022-06-22 17:55:55
+ * @LastEditTime: 2022-07-05 14:35:21
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\api\modules\operationword.ts
@@ -45,3 +45,9 @@ export const waitRedact = (obj: object) => service.post(`/wechat/hxTelKeyword/wa
 export const updateKeyword = (obj: object) => service.post(`/wechat/hxTelKeyword/updateKeyword`, obj);
 // 获取大文件列表
 export const getBigFile = (obj: object) => service.post(`/wechat/web/userWechat/getBigFile `, obj);
+// 获取话术
+export const getDetailScenarios = () => service.get(`/wechat/hxTelScenarios/getDetailScenarios`);
+// 添加知识库
+export const addKnowledges = (obj: object) => service.post(`/wechat/hxTelScenarios/addKnowledges`, obj);
+
+export const getScenariosById = (id: number) => service.get(`/wechat/hxTelScenarios/getScenariosById/${id}`);

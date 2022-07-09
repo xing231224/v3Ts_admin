@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-04-12 09:42:00
- * @LastEditTime: 2022-05-23 16:58:24
+ * @LastEditTime: 2022-07-06 15:37:31
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\operationMan\verbalTrickPush\index.vue
@@ -506,14 +506,17 @@ const {
 <style lang="scss" scoped>
 .verbalTrickPush {
     padding: 20px;
+
     .box-card {
         flex: 1;
     }
+
     .btn {
         // justify-content: center;
         margin: 0 20px;
     }
 }
+
 .el-table ::v-deep(.warning-row) {
     background: oldlace;
 }
@@ -521,6 +524,7 @@ const {
 .el-table ::v-deep(.success-row) {
     background: #f0f9eb;
 }
+
 .el-table ::v-deep(.el-table__expanded-cell) {
     padding: 1px;
     padding-left: 48px;

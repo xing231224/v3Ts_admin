@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-04-06 12:01:42
- * @LastEditTime: 2022-06-15 16:42:14
+ * @LastEditTime: 2022-07-09 14:43:53
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3ts_admin\src\views\verbalTRStock\Processnode.vue
@@ -9,7 +9,7 @@
 <template>
     <div
         :id="`node_move${dataObj?.id}`"
-        class="node_move"
+        :class="`node_move node_move${dataObj?.id}`"
         :style="`top:${dataObj?.top}px;left:${dataObj?.left}px`"
         @dblclick="dialogFn"
         @mouseup="mouseup"
@@ -390,14 +390,15 @@ function getEndpointInfo() {
             : JSON.parse(props.dataObj.vpath);
     }
     state.EndpointList.forEach((item: any, index: number) => {
-        const data = $plumbIns.getEndpoints(item.id)[0].connections[0] || '';
-        const objInfo = {
-            sourceId: data.sourceId, // 线的起始html元素的ID
-            targetId: data.targetId, // 线的目标html元素的ID
-            endpoints: data.endpoints, // 线的端点 有起始端点和目标端点 endpoints是一个数组
-        };
+        const data = $plumbIns.getEndpoints(item.id)[0] ? $plumbIns.getEndpoints(item.id)[0].connections[0] : '';
         // eslint-disable-next-line no-param-reassign
-        item.info = data ? objInfo : data;
+        item.info = data
+            ? {
+                  sourceId: data.sourceId, // 线的起始html元素的ID
+                  targetId: data.targetId, // 线的目标html元素的ID
+                  endpoints: data.endpoints, // 线的端点 有起始端点和目标端点 endpoints是一个数组
+              }
+            : data;
         if (state.isPre) {
             // 父节点
             if (item.id.indexOf('node_tags') !== -1) {
@@ -453,7 +454,6 @@ function uploadFile(file: any) {
         complete(res: { key: string }) {
             // 拼接路径字符串
             state.videoUrl = `${state.baseurl}/${res.key}`;
-            console.log(state.videoUrl);
         },
     };
     // 上传开始

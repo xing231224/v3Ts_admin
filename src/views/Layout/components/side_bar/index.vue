@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2022-03-21 14:58:57
- * @LastEditTime: 2022-05-12 15:36:06
+ * @LastEditTime: 2022-07-06 15:34:12
  * @LastEditors: xing 1981193009@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \v3-ts_demo\src\views\Layout\components\index.vue
@@ -24,7 +24,6 @@
                 :index="item.path"
             >
                 <template #title>
-                    <!-- <component :is="'Baseline10k'"></component> -->
                     <svg-icon v-if="item.meta?.icon" :name="(item.meta?.icon as string)"></svg-icon>
                     <span>{{ item.meta?.title }}</span>
                 </template>
@@ -93,10 +92,13 @@ watch(
     (n) => {
         const obj = getObj(n.path, routeList);
         if (routers().getNavRouter.find((item) => item.name == obj.name)) return;
-        routers().addNavRouter(getObj(n.path, routeList));
+        nextTick(() => {
+            routers().addNavRouter(getObj(n.path, routeList));
+        });
     },
     {
         immediate: true,
+        deep: true,
     },
 );
 </script>
